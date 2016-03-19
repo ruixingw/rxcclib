@@ -1,9 +1,6 @@
 from __future__ import print_function
 import math
 
-def swap(a,b):
-    return b,a
-
 class geometry(object):
 
     def __init__(self):
@@ -62,7 +59,7 @@ class vector(object):
 class bonds(object):
     def __init__(self,geom,a,b): # self, atomid a, atomid b
         if a>b:
-            a,b=swap(a,b)
+            a,b=b,a
         self.a=geom.atoms[a]
         self.b=geom.atoms[b]
         geom.bonds.update({str(a)+','+str(b):self})
@@ -72,7 +69,7 @@ class bonds(object):
 class angles(object):
     def __init__(self,geom,a,b,c):
         if a>c:
-            a,c=swap(a,c)
+            a,c=c,a
         self.a=geom.atoms[a]
         self.b=geom.atoms[b]
         self.c=geom.atoms[c]
@@ -89,11 +86,11 @@ class angles(object):
 class dihedrals(object):
     def __init__(self,geom,a,b,c,d):
         if b>c:
-            b,c=swap(b,c)
-            a,d=swap(a,d)
+            b,c=c,b
+            a,d=d,a
         elif b==c:
             if a>d:
-                a,d=swap(a,d)
+                a,d=d,a
         self.a=geom.atoms[a]
         self.b=geom.atoms[b]
         self.c=geom.atoms[c]
@@ -108,7 +105,7 @@ class bondfunc(object):
         a=bondobj.a.atomtype
         b=bondobj.b.atomtype
         if a>b:
-            a,b=swap(a,b)
+            a,b=b,a
         bondobj.func=self
         self.link=a+' '+b
         geom.bondfunc.update({self.link:self})
@@ -119,7 +116,7 @@ class anglefunc(object):
         b=angleobj.b.atomtype
         c=angleobj.c.atomtype
         if a>c:
-            a,c=swap(a,c)
+            a,c=c,a
         angleobj.func=self
         self.link=a+' '+b+' '+c
         geom.anglefunc.update({self.link:self})
@@ -131,11 +128,11 @@ class dihdfunc(object):
         c=dihdobj.c.atomtype
         d=dihdobj.d.atomtype
         if b>c:
-            a,d=swap(a,d)
-            b,c=swap(b,c)
+            a,d=d,a
+            b,c=c,b
         elif b==c:
             if a>d:
-                a,d=swap(a,d)
+                a,d=d,a
         dihdobj.func=self
         self.link=a+' '+b+' '+c+' '+d
         geom.dihdfunc.update({self.link:self})
