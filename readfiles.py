@@ -4,7 +4,7 @@ import os,time
 
 
 class File(object):
-    antechamber='antechamber -c resp'
+
     def __init__(self,name):
         self.__name=name
         self.__comname=name+'.com'
@@ -37,15 +37,22 @@ class File(object):
     def ac(self):
         return self.__ac
     def assignatomtogeom(self,geom):
-        xyz=['']
-        for i in range(0,len(self.fchk().xyzlist()),3):
-            xyz.append(self.fchk.xyzlist()[i:i+3])
-        for i in range(1,self.natoms+1):
-            geom.addatom(self.atomlist[i],xyz[i])
+        self.fchk().assignatom(geom)
+    def assignchargetogeom(self,geom):
+        state=self.ac().assigncharge(geom)
+        return state
+    def assigntypetogeom(self,geom):
+        state=self.ac().assigntype(geom)
+        return state
     def readfchk(self):
         if not self.fchk().read():
             print("Error in reading fchk:",self.fchkname())
             quit()
+    def readac(self):
+        state=self.ac().readAC()
+        return state
+    def getnatoms(self):
+        return self.fchk().getnatoms()
     def readHessianFromFchk(self):
         state=self.fchk().readhessian()
         if not state:
@@ -55,6 +62,9 @@ class File(object):
         return self.fchk().find33Hessian(i,j)
     def rung09(self):
         state=self.com().rung09()
+        return state
+    def rung09a2(self):
+        state=self.com().rung09a2()
         return state
     def isover(self):
         state=self.com().isover()
@@ -69,7 +79,14 @@ class File(object):
             print('   Error in formatting',self.chkname())
             return False
         return True
-
+    def getcharge(self):
+        return self.fchk().getcharge()
+    def getspin(self):
+        return self.fchk().getspin()
+    def antecham(self):
+        print(self)
+        print(self.ac())
+        self.ac().antecha()
 
 
 class gauFCHK(File):
@@ -79,13 +96,12 @@ class gauFCHK(File):
         self.__xyzlist=[]
         self.__atomlist=['0']
         self.__hessian=False
-        self.__xyzlist=''
         self.__charge=''
         self.__spin=''
         self.__natoms=0
     def read(self):
-        print('Read fchk:',self.__father.getfchkname())
-        with open(self.__father.getfchkname(),'r') as f:
+        print('Read fchk:',self.__father.fchkname())
+        with open(self.__father.fchkname(),'r') as f:
             while True:
                 string=f.readline()
                 if string.find('Charge')>=0:
@@ -109,9 +125,17 @@ class gauFCHK(File):
                         for x in string.split():
                             self.__xyzlist.append(x.strip(' '))
                     break
-        self.__xyzlist=[float(x) for x in self.xyzlist]
-        self.__atomlist=[int(x) for x in self.atomlist]
+        self.__xyzlist=[float(x) for x in self.__xyzlist]
+        self.__atomlist=[int(x) for x in self.__atomlist]
         return True
+    def assignatom(self,geom):
+        xyz=['']
+        for i in range(0,len(self.__xyzlist),3):
+            xyz.append(self.__xyzlist[i:i+3])
+        for i in range(1,self.__natoms+1):
+            geom.addatom(self.__atomlist[i],xyz[i])
+    def getnatoms(self):
+        return self.__natoms
     def xyzlist(self):
         return self.__xyzlist
     def readhessian(self):
@@ -138,6 +162,10 @@ class gauFCHK(File):
             return False
         else:
             return self.__hessian
+    def getcharge(self):
+        return self.__charge
+    def getspin(self):
+        return self.__spin
     def findHessianElement(self,i,j): #i, j: coordinate number
         if i<j:
             i,j=j,i
@@ -160,6 +188,7 @@ class gauFCHK(File):
         return tthess
 
 class amberAC(File):
+    antecommand='antechamber -c resp'
     def __init__(self,father):
         self.__father=father
         self.__atomtype=['']
@@ -180,15 +209,18 @@ class amberAC(File):
     def assigncharge(self,geom): #!!!!!!!!!!!!!
         for i in range(1,geom.natoms+1):
             geom.atoms[i].charge=self.__charge[i]
-    def getresp(self):
+    def antecha(self):
         print('Runing antechamber: \n')
-        os.system(gauFile.antechamber+' -i '+self.log+' -fi gout -o '+self.ac+' -fo ac')
+        command=amberAC.antecommand+' -i '+self.__father.logname()+' -fi gout -o '+self.__father.acname()+' -fo ac'
+        print(command)
+        os.system(command)
 
 class gauCOM(File):
     g09rt='g09boon'
     g09a2rt='g09a2boon'
     def __init__(self,father):
         self.__father=father
+
     def rung09(self):
         ifchk=1 # if no chk, add.
         with open(self.__father.comname(),'r') as f:
@@ -205,6 +237,7 @@ class gauCOM(File):
                 f.write(content)
         print('Run g09 : '+gauCOM.g09rt+' '+self.__father.comname())
         os.system(gauCOM.g09rt+' '+self.__father.comname())
+
     def rung09a2(self):
         ifchk=1 # if no chk, add.
         with open(self.__father.comname(),'r') as f:
@@ -217,7 +250,7 @@ class gauCOM(File):
                 content=f.read()
         if ifchk==1:
             with open(self.__father.comname(),'w') as f:
-                f.write('%chk='+self.__father.chkname+'\n')
+                f.write('%chk='+self.__father.chkname()+'\n')
                 f.write(content)
         print('Run g09a2 : '+gauCOM.g09a2rt+' '+self.__father.comname())
         os.system(gauCOM.g09a2rt+' '+self.__father.comname())
