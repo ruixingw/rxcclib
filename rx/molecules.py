@@ -26,8 +26,8 @@ class molecule(object):
     def natoms(self):
         return len(self.__atomlist)-1
     # Add atom and internal coordinates
-    def addatom(self,idorsym,xyz,unit='bohr'):
-        self.__atomlist.append(Atom(self,idorsym,xyz,unit))
+    def addatom(self,idorsym,coords,unit='bohr'):
+        self.__atomlist.append(Atom(self,idorsym,coords,unit))
 
     def addbond(self,atomnum1,atomnum2):
         if atomnum1>atomnum2:
@@ -149,14 +149,17 @@ class molecule(object):
             raise StopIteration("Exceeded all atoms")
 
 
-    # Read structure from xyz
-    def readfromxyz(self,filename):
-        with open(filename) as f:
-            for line in f.readlines():
-                this=line.split()
-                atom=this[0]
-                xyz=np.array([this[1],this[2],this[3]],dtype=float)
-                self.addatom(atom,xyz,unit='angstrom')
+    # Read structure from coords
+    def readfromxyz(self,filelikeobj):
+        f=filelikeobj
+        for line in f:
+            print(line)
+            tmp=line.split()
+            atom=tmp[0]
+            if atom.isdigit():
+                atom=int(atom)
+            coords=np.array([tmp[1],tmp[2],tmp[3]],dtype=float)
+            self.addatom(atom,coords,unit='angstrom')
 
 class Atom(object):
     '''
@@ -174,7 +177,7 @@ class Atom(object):
     'O2'
     >>> mole.atom(1).mymolecule.name
     'CO'
-    >>> mole.atom(1).xyz
+    >>> mole.atom(1).coords
     array([ 0.,  0.,  0.])
     >>> setattr(mole.atom(1),'atomtype','c2')
     >>> mole.atom(1).atomtype
@@ -184,7 +187,7 @@ class Atom(object):
     __idtosym={1:'H',5:'B',6:'C',7:'N',8:'O',9:'F',13:'Al',14:'Si',15:'P',16:'S',17:'Cl',26:'Fe',28:'Ni',29:'Cu',30:'Zn'}
     __symtoid={v:k for k,v in __idtosym.items()}
 
-    def __init__(self,mole,idorsym,xyz,unit='bohr'):  # molecule object,int,[float,float,float]
+    def __init__(self,mole,idorsym,coords,unit='bohr'):  # molecule object,int,[float,float,float]
         assert isinstance(mole,molecule),"First argument must be a molecule object!. Use molecule.addatom method to avoid this problem."
         assert unit!='bohr' or unit!='angstrom', "Coordinate unit must be bohr or angstrom"
         self.__mymolecule=mole
@@ -193,27 +196,27 @@ class Atom(object):
             try:
                 self.__atomsym=Atom.__idtosym[self.__elementid] #str
             except KeyError:
-                raise MoleDefError("Error when adding atom: Idtosym not defined for atomic no:",self.__elementid)
+                raise MoleDefError("Error when adding atom: Idtosym not defined for atomic no:"+str(self.__elementid))
         elif isinstance(idorsym,str):
             self.__atomsym=idorsym
             try:
                 self.__elementid=Atom.__symtoid[self.__atomsym]
             except KeyError:
-                raise MoleDefError("Error when adding atom: Idtosym not defined for atomic symbol:",self.__atomsym)
+                raise MoleDefError("Error when adding atom: Idtosym not defined for atomic symbol:"+self.__atomsym)
         else:
-                raise MoleDefError("Error when adding atom: Expected atomic NO(int) or symbol(str) for input, received a",type(idorsym))
+                raise MoleDefError("Error when adding atom: Expected atomic NO(int) or symbol(str) for input, received a"+str(type(idorsym)))
 
         if unit=='bohr':
-            self.__xyz=Atom.bohr*xyz
+            self.__coords=Atom.bohr*coords
         elif unit=='angstrom':
-            self.__xyz=xyz
+            self.__coords=coords
 
         self.__atomnum=mole.natoms+1
-        self.__atomtype=self.name
+        self.atomtype=self.name
 
     @property
-    def xyz(self):
-        return self.__xyz
+    def coords(self):
+        return self.__coords
     @property
     def name(self):
         return str(self.__atomsym)+str(self.__atomnum)
@@ -226,12 +229,6 @@ class Atom(object):
     @property
     def atomsym(self):
         return self.__atomsym
-    @property
-    def atomtype(self):
-        return self.__atomtype
-    @atomtype.setter
-    def atomtype(self,value):
-        self.__atomtype=value
     @property
     def mymolecule(self):
         return self.__mymolecule
@@ -249,7 +246,7 @@ class Bond(object):
             a,b=b,a
         self.__a=mole[a]
         self.__b=mole[b]
-        self.__vec=self.__a.xyz-self.__b.xyz
+        self.__vec=self.__a.coords-self.__b.coords
         self.bondtype=self.__a.name+' '+self.__b.name
     def __getitem__(self,value):
         if value==1:
@@ -274,8 +271,8 @@ class Angle(object):
         self.__a=mole[a]
         self.__b=mole[b]
         self.__c=mole[c]
-        self.__ab=mole[a].xyz-mole[b].xyz
-        self.__bc=mole[b].xyz-mole[c].xyz
+        self.__ab=mole[a].coords-mole[b].coords
+        self.__bc=mole[b].coords-mole[c].coords
         self.angletype=self.__a.name+' '+self.__b.name+' '+self.__c.name
     def __getitem__(self,value):
         if value==1:
@@ -347,9 +344,9 @@ class Dihd(object):
 
     @property
     def dihdvalue(self):
-        v1=self.__a.xyz-self.__b.xyz
-        v2=self.__b.xyz-self.__c.xyz
-        v3=self.__c.xyz-self.__d.xyz
+        v1=self.__a.coords-self.__b.coords
+        v2=self.__b.coords-self.__c.coords
+        v3=self.__c.coords-self.__d.coords
         v1u=v1/np.linalg.norm(v1)
         v2u=v1/np.linalg.norm(v2)
         v3u=v1/np.linalg.norm(v3)
