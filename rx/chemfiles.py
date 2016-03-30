@@ -83,6 +83,12 @@ class File(object):
             souc=self.default
         if souc=='fchk':
             return self.__fchk.xyz
+    @property
+    def atomtypelist(self):
+        return self.__ac.atomtypelist
+    @property
+    def atomchargelist(self):
+        return self.__ac.atomchargelist
 
 
     # fetch data as function
@@ -236,7 +242,8 @@ class amberAC(object):
                     break
                 ac=string.split()
                 self.__atomtype.append(ac[len(ac)-1])
-                self.__charge.append(ac[len(ac)-2])
+                self.__charge.append(float(ac[len(ac)-2]))
+        return True
     @property
     def atomtypelist(self):
         return self.__atomtype
@@ -285,8 +292,6 @@ class gauCOM(object):
                 if counter==2:
                     self.__father.multiplicity=int(line.split()[0])
                     self.__father.totalcharge=int(line.split()[1])
-                    print("mlpty=",self.__father.multiplicity)
-                    print('charge=',self.__father.totalcharge)
                     while counter==2:
                         line=next(f)
                         if line=='\n':
@@ -306,9 +311,6 @@ class gauCOM(object):
                             line=next(f)
 
         self.__coordslist=np.array(self.__coordslist)
-        print(self.__atomlist)
-        print(self.__coordslist)
-        print(self.__connectivity)
 
 
 
