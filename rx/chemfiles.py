@@ -125,7 +125,7 @@ class File(object):
             return False
         iferror.close()
         return True
-    def antecham(self):
+    def runantecham(self):
         print(self.ac())
         self.ac().antecha()
 

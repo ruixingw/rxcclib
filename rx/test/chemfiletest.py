@@ -5,14 +5,14 @@ import unittest
 
 class TestFile(unittest.TestCase):
     def test_File(self):
-        self.file=rxccfile.File('ben')
+        self.file=rxccfile.File('benfreq')
         self.assertIsInstance(self.file,rxccfile.File)
         self.assertIsInstance(self.file.com,rxccfile.gauCOM)
         self.assertIsInstance(self.file.log,rxccfile.gauLOG)
         self.assertIsInstance(self.file.fchk,rxccfile.gauFCHK)
         self.assertIsInstance(self.file.ac,rxccfile.amberAC)
     def test_fchk(self):
-        self.file=rxccfile.File('ben')
+        self.file=rxccfile.File('benfreq')
         self.assertEqual(self.file.readfchk(),None)
 
         self.assertEqual(self.file.natoms,12)
@@ -41,6 +41,7 @@ class TestFile(unittest.TestCase):
         self.assertEqual(self.file.atomchargelist[0],None)
         self.assertEqual(self.file.atomchargelist[1],-0.117738)
         self.assertEqual(self.file.atomchargelist[12],0.117738)
+    def test_log(self):
 
 
 
