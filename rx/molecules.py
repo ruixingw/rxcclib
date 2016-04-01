@@ -139,7 +139,7 @@ class molecule(object):
                 L.append(self.__atomlist[x])
             return L
     def __iter__(self):
-        self.__pointer=0
+#        self.__pointer=0
         return self
     def __next__(self):
         self.__pointer+=1
@@ -153,7 +153,6 @@ class molecule(object):
     def readfromxyz(self,filelikeobj):
         f=filelikeobj
         for line in f:
-            print(line)
             tmp=line.split()
             atom=tmp[0]
             if atom.isdigit():
@@ -232,6 +231,8 @@ class Atom(object):
     @property
     def mymolecule(self):
         return self.__mymolecule
+    def __str__(self):
+        return "Atom object for atom "+self.name
     # @mymolecule.setter
     # def mymolecule(self,value):
     #     if not isinstance(value,molecule):
@@ -254,7 +255,7 @@ class Bond(object):
         elif value==2:
             return self.__b
         else:
-            raise MoleDefError("Argument for __getitem__ of bond object must be 1 or 2.")
+            raise MoleDefError("Index for bond object must be 1 or 2.")
     @property
     def a(self):
         return self.__a
@@ -264,6 +265,8 @@ class Bond(object):
     @property
     def length(self):
         return np.linalg.norm(self.__vec)
+    def __str__(self):
+        return "Bond object of bond "+self.a.name+'-'+self.b.name
 class Angle(object):
     def __init__(self,mole,a,b,c):
         if a>c:
@@ -282,7 +285,7 @@ class Angle(object):
         elif value==3:
             return self.__c
         else:
-            raise MoleDefError("Argument for __getitem__ of angle object must be 1, 2 or 3.")
+            raise MoleDefError("Index for angle object must be 1, 2 or 3.")
 
     @property
     def a(self):
@@ -304,6 +307,8 @@ class Angle(object):
             else:
                 return 180.0
         return angle
+    def __str__(self):
+        return "Angle object of angle "+self.a.name+'-'+self.b.name+'-'+self.c.name
 class Dihd(object):
     def __init__(self,mole,a,b,c,d):
         if b>c:
@@ -327,7 +332,7 @@ class Dihd(object):
         elif value==4:
             return self.__d
         else:
-            raise MoleDefError("Argument for __getitem__ of angle object must be 1, 2 ,3 or 4.")
+            raise MoleDefError("Index for dihedral object must be 1, 2 ,3 or 4.")
 
     @property
     def a(self):
@@ -359,7 +364,8 @@ class Dihd(object):
             else:
                 return 180.0
         return dihd
-
+    def __str__(self):
+        return "Dihedral object of dihedral "+self.a.name+'-'+self.b.name+'-'+self.c.name+'-'+self.d.name
 class Bondfunc(object):
     def __init__(self,mole,bondobj):
         a=bondobj[1].atomtype

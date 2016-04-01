@@ -1,6 +1,6 @@
 import rx.chemfiles as rxccfile
 import rx.molecules as rxmol
-import unittest
+import unittest,os
 
 
 class TestFile(unittest.TestCase):
@@ -30,7 +30,7 @@ class TestFile(unittest.TestCase):
         self.file=rxccfile.File('bencom')
         self.file.rung09()
         self.file.isover()
-        self.file.formchk()
+        self.file.runformchk()
         self.file.com.read()
     def test_ac(self):
         self.file=rxccfile.File('benac')
@@ -42,8 +42,10 @@ class TestFile(unittest.TestCase):
         self.assertEqual(self.file.atomchargelist[1],-0.117738)
         self.assertEqual(self.file.atomchargelist[12],0.117738)
     def test_log(self):
-
-
+        self.file=rxccfile.File('benresp')
+        self.file.runantecham()
+    def tearDown(self):
+        os.system('rm A* q* Q* p* gaussian*')
 
 #        self.assertEqual()
 

@@ -1,8 +1,8 @@
-gaussian.178559.boonlay-h00
+gaussian.178653.boonlay-h00
  Entering Gaussian System, Link 0=g09
  Initial command:
- /usr/local/gaussian/g09/l1.exe /home/rwang013/scratch/gaussian.178559.boonlay-h00/Gau-7457.inp -scrdir=/home/rwang013/scratch/gaussian.178559.boonlay-h00/
- Entering Link 1 = /usr/local/gaussian/g09/l1.exe PID=      7458.
+ /usr/local/gaussian/g09/l1.exe /home/rwang013/scratch/gaussian.178653.boonlay-h00/Gau-26223.inp -scrdir=/home/rwang013/scratch/gaussian.178653.boonlay-h00/
+ Entering Link 1 = /usr/local/gaussian/g09/l1.exe PID=     26224.
   
  Copyright (c) 1988,1990,1992,1993,1995,1998,2003,2009,2010,
             Gaussian, Inc.  All Rights Reserved.
@@ -75,9 +75,9 @@ gaussian.178559.boonlay-h00
  
  ******************************************
  Gaussian 09:  EM64L-G09RevB.01 12-Aug-2010
-                30-Mar-2016 
+                 1-Apr-2016 
  ******************************************
- %chk=/home/rwang013/scratch/gaussian.178559.boonlay-h00/bencom.chk
+ %chk=/home/rwang013/scratch/gaussian.178653.boonlay-h00/bencom.chk
  %NProcShared=6
  Will use up to    6 processors via shared memory.
  %mem=12gb
@@ -103,7 +103,7 @@ gaussian.178559.boonlay-h00
  2/9=110,15=1/2;
  6/7=2,8=2,9=2,10=2,19=2,28=1/1;
  99/9=1/99;
- Leave Link    1 at Wed Mar 30 19:20:28 2016, MaxMem= 1610612736 cpu:       0.2
+ Leave Link    1 at Fri Apr  1 15:45:00 2016, MaxMem= 1610612736 cpu:       0.5
  (Enter /usr/local/gaussian/g09/l101.exe)
  ---------
  opt-title
@@ -143,7 +143,7 @@ gaussian.178559.boonlay-h00
  AtZEff=   0.0000000   0.0000000
  NQMom=    0.0000000   0.0000000
  NMagM=    2.7928460   2.7928460
- Leave Link  101 at Wed Mar 30 19:20:28 2016, MaxMem= 1610612736 cpu:       0.5
+ Leave Link  101 at Fri Apr  1 15:45:01 2016, MaxMem= 1610612736 cpu:       0.6
  (Enter /usr/local/gaussian/g09/l103.exe)
 
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
@@ -214,7 +214,7 @@ gaussian.178559.boonlay-h00
  Number of steps in this run=     64 maximum allowed number of steps=    100.
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
 
- Leave Link  103 at Wed Mar 30 19:20:28 2016, MaxMem= 1610612736 cpu:       0.1
+ Leave Link  103 at Fri Apr  1 15:45:01 2016, MaxMem= 1610612736 cpu:       0.1
  (Enter /usr/local/gaussian/g09/l202.exe)
                           Input orientation:                          
  ---------------------------------------------------------------------
@@ -267,7 +267,7 @@ gaussian.178559.boonlay-h00
  Deg. of freedom    15
  Full point group                 CI      NOp   2
  Rotational constants (GHZ):      5.6697220      5.6697213      2.8348608
- Leave Link  202 at Wed Mar 30 19:20:29 2016, MaxMem= 1610612736 cpu:       0.0
+ Leave Link  202 at Fri Apr  1 15:45:01 2016, MaxMem= 1610612736 cpu:       0.1
  (Enter /usr/local/gaussian/g09/l301.exe)
  General basis read from cards:  (5D, 7F)
  Centers:   1  2  3  4  5  6  7  8  9 10 11 12
@@ -315,7 +315,7 @@ gaussian.178559.boonlay-h00
  ScaDFX=  0.800000  0.720000  1.000000  0.810000 ScalE2=  1.000000  1.000000
  IRadAn=      0 IRanWt=     -1 IRanGd=            0 ICorTp=0
  NAtoms=   12 NActive=   12 NUniq=   12 SFac= 1.00D+00 NAtFMM=   50 NAOKFM=F Big=F
- Leave Link  301 at Wed Mar 30 19:20:29 2016, MaxMem= 1610612736 cpu:       0.4
+ Leave Link  301 at Fri Apr  1 15:45:01 2016, MaxMem= 1610612736 cpu:       0.4
  (Enter /usr/local/gaussian/g09/l302.exe)
  NPDir=0 NMtPBC=     1 NCelOv=     1 NCel=       1 NClECP=     1 NCelD=      1
          NCelK=      1 NCelE2=     1 NClLst=     1 CellRange=     0.0.
@@ -329,10 +329,10 @@ gaussian.178559.boonlay-h00
  IXCGrd= 2 IRadAn=           0 IRanWt=          -1 IRanGd=           0 AccXCQ= 0.00D+00.
  NRdTot=     768 NPtTot=       97284 NUsed=      102829 NTot=      102861
  NSgBfM=   126   126   126   126   126 NAtAll=    12    12.
- Leave Link  302 at Wed Mar 30 19:20:29 2016, MaxMem= 1610612736 cpu:       1.1
+ Leave Link  302 at Fri Apr  1 15:45:01 2016, MaxMem= 1610612736 cpu:       1.1
  (Enter /usr/local/gaussian/g09/l303.exe)
  DipDrv:  MaxL=1.
- Leave Link  303 at Wed Mar 30 19:20:29 2016, MaxMem= 1610612736 cpu:       0.2
+ Leave Link  303 at Fri Apr  1 15:45:01 2016, MaxMem= 1610612736 cpu:       0.2
  (Enter /usr/local/gaussian/g09/l401.exe)
  Harris functional with IExCor=  402 diagonalized for initial guess.
  ExpMin= 4.38D-02 ExpMax= 3.05D+03 ExpMxC= 4.57D+02 IAcc=2 IRadAn=         0 AccDes= 0.00D+00
@@ -345,7 +345,7 @@ gaussian.178559.boonlay-h00
          I1Cent=           4 NGrid=           0.
  Symmetry not used in FoFCou.
  Harris En= -232.257581556468    
- Leave Link  401 at Wed Mar 30 19:20:29 2016, MaxMem= 1610612736 cpu:       2.6
+ Leave Link  401 at Fri Apr  1 15:45:02 2016, MaxMem= 1610612736 cpu:       3.6
  (Enter /usr/local/gaussian/g09/l502.exe)
  Closed shell SCF:
  Requested convergence on RMS density matrix=1.00D-08 within 128 cycles.
@@ -377,9 +377,9 @@ gaussian.178559.boonlay-h00
  RMSDP=1.08D-02 MaxDP=1.45D-01              OVMax= 1.77D-01
 
  Cycle   2  Pass 1  IDiag  1:
- E= -232.175133888463     Delta-E=       -0.060670047505 Rises=F Damp=T
+ E= -232.175133888464     Delta-E=       -0.060670047507 Rises=F Damp=T
  DIIS: error= 8.47D-03 at cycle   2 NSaved=   2.
- NSaved= 2 IEnMin= 2 EnMin= -232.175133888463     IErMin= 2 ErrMin= 8.47D-03
+ NSaved= 2 IEnMin= 2 EnMin= -232.175133888464     IErMin= 2 ErrMin= 8.47D-03
  ErrMax= 8.47D-03 EMaxC= 1.00D-01 BMatC= 5.10D-03 BMatP= 1.11D-01
  IDIUse=3 WtCom= 9.15D-01 WtEn= 8.47D-02
  Coeff-Com:  0.651D-01 0.935D+00
@@ -389,9 +389,9 @@ gaussian.178559.boonlay-h00
  RMSDP=3.63D-03 MaxDP=7.52D-02 DE=-6.07D-02 OVMax= 9.73D-02
 
  Cycle   3  Pass 1  IDiag  1:
- E= -232.253491005210     Delta-E=       -0.078357116747 Rises=F Damp=F
+ E= -232.253491005211     Delta-E=       -0.078357116747 Rises=F Damp=F
  DIIS: error= 4.58D-03 at cycle   3 NSaved=   3.
- NSaved= 3 IEnMin= 3 EnMin= -232.253491005210     IErMin= 3 ErrMin= 4.58D-03
+ NSaved= 3 IEnMin= 3 EnMin= -232.253491005211     IErMin= 3 ErrMin= 4.58D-03
  ErrMax= 4.58D-03 EMaxC= 1.00D-01 BMatC= 9.68D-04 BMatP= 5.10D-03
  IDIUse=3 WtCom= 9.54D-01 WtEn= 4.58D-02
  Coeff-Com: -0.225D-01 0.264D+00 0.758D+00
@@ -401,7 +401,7 @@ gaussian.178559.boonlay-h00
  RMSDP=1.01D-03 MaxDP=1.43D-02 DE=-7.84D-02 OVMax= 7.02D-03
 
  Cycle   4  Pass 1  IDiag  1:
- E= -232.254388372401     Delta-E=       -0.000897367191 Rises=F Damp=F
+ E= -232.254388372401     Delta-E=       -0.000897367190 Rises=F Damp=F
  DIIS: error= 4.43D-04 at cycle   4 NSaved=   4.
  NSaved= 4 IEnMin= 4 EnMin= -232.254388372401     IErMin= 4 ErrMin= 4.43D-04
  ErrMax= 4.43D-04 EMaxC= 1.00D-01 BMatC= 1.63D-05 BMatP= 9.68D-04
@@ -413,9 +413,9 @@ gaussian.178559.boonlay-h00
  RMSDP=1.10D-04 MaxDP=1.49D-03 DE=-8.97D-04 OVMax= 8.66D-04
 
  Cycle   5  Pass 1  IDiag  1:
- E= -232.254405500913     Delta-E=       -0.000017128512 Rises=F Damp=F
+ E= -232.254405500914     Delta-E=       -0.000017128513 Rises=F Damp=F
  DIIS: error= 1.93D-05 at cycle   5 NSaved=   5.
- NSaved= 5 IEnMin= 5 EnMin= -232.254405500913     IErMin= 5 ErrMin= 1.93D-05
+ NSaved= 5 IEnMin= 5 EnMin= -232.254405500914     IErMin= 5 ErrMin= 1.93D-05
  ErrMax= 1.93D-05 EMaxC= 1.00D-01 BMatC= 3.20D-08 BMatP= 1.63D-05
  IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
  Coeff-Com: -0.451D-03-0.114D-02 0.317D-02 0.632D-01 0.935D+00
@@ -424,7 +424,7 @@ gaussian.178559.boonlay-h00
  RMSDP=1.12D-05 MaxDP=1.72D-04 DE=-1.71D-05 OVMax= 3.72D-05
 
  Cycle   6  Pass 1  IDiag  1:
- E= -232.254405533342     Delta-E=       -0.000000032429 Rises=F Damp=F
+ E= -232.254405533342     Delta-E=       -0.000000032428 Rises=F Damp=F
  DIIS: error= 1.29D-06 at cycle   6 NSaved=   6.
  NSaved= 6 IEnMin= 6 EnMin= -232.254405533342     IErMin= 6 ErrMin= 1.29D-06
  ErrMax= 1.29D-06 EMaxC= 1.00D-01 BMatC= 1.36D-10 BMatP= 3.20D-08
@@ -435,9 +435,9 @@ gaussian.178559.boonlay-h00
  RMSDP=4.65D-07 MaxDP=5.76D-06 DE=-3.24D-08 OVMax= 7.27D-06
 
  Cycle   7  Pass 1  IDiag  1:
- E= -232.254405533394     Delta-E=       -0.000000000051 Rises=F Damp=F
+ E= -232.254405533393     Delta-E=       -0.000000000051 Rises=F Damp=F
  DIIS: error= 1.46D-06 at cycle   7 NSaved=   7.
- NSaved= 7 IEnMin= 7 EnMin= -232.254405533394     IErMin= 6 ErrMin= 1.29D-06
+ NSaved= 7 IEnMin= 7 EnMin= -232.254405533393     IErMin= 6 ErrMin= 1.29D-06
  ErrMax= 1.46D-06 EMaxC= 1.00D-01 BMatC= 1.43D-10 BMatP= 1.36D-10
  IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
  Coeff-Com:  0.223D-04-0.975D-06-0.304D-03-0.187D-02-0.180D-01 0.566D+00
@@ -445,12 +445,12 @@ gaussian.178559.boonlay-h00
  Coeff:      0.223D-04-0.975D-06-0.304D-03-0.187D-02-0.180D-01 0.566D+00
  Coeff:      0.454D+00
  Gap=     0.243 Goal=   None    Shift=    0.000
- RMSDP=1.08D-07 MaxDP=2.14D-06 DE=-5.14D-11 OVMax= 4.39D-06
+ RMSDP=1.08D-07 MaxDP=2.14D-06 DE=-5.13D-11 OVMax= 4.39D-06
 
  Cycle   8  Pass 1  IDiag  1:
- E= -232.254405533532     Delta-E=       -0.000000000139 Rises=F Damp=F
+ E= -232.254405533531     Delta-E=       -0.000000000138 Rises=F Damp=F
  DIIS: error= 1.47D-07 at cycle   8 NSaved=   8.
- NSaved= 8 IEnMin= 8 EnMin= -232.254405533532     IErMin= 8 ErrMin= 1.47D-07
+ NSaved= 8 IEnMin= 8 EnMin= -232.254405533531     IErMin= 8 ErrMin= 1.47D-07
  ErrMax= 1.47D-07 EMaxC= 1.00D-01 BMatC= 2.10D-12 BMatP= 1.36D-10
  IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
  Coeff-Com: -0.487D-06 0.262D-05-0.237D-04-0.167D-03-0.176D-02 0.226D-01
@@ -458,10 +458,10 @@ gaussian.178559.boonlay-h00
  Coeff:     -0.487D-06 0.262D-05-0.237D-04-0.167D-03-0.176D-02 0.226D-01
  Coeff:      0.103D+00 0.876D+00
  Gap=     0.243 Goal=   None    Shift=    0.000
- RMSDP=2.40D-08 MaxDP=2.51D-07 DE=-1.39D-10 OVMax= 4.10D-07
+ RMSDP=2.40D-08 MaxDP=2.51D-07 DE=-1.38D-10 OVMax= 4.10D-07
 
  Cycle   9  Pass 1  IDiag  1:
- E= -232.254405533535     Delta-E=       -0.000000000003 Rises=F Damp=F
+ E= -232.254405533535     Delta-E=       -0.000000000004 Rises=F Damp=F
  DIIS: error= 3.63D-09 at cycle   9 NSaved=   9.
  NSaved= 9 IEnMin= 9 EnMin= -232.254405533535     IErMin= 9 ErrMin= 3.63D-09
  ErrMax= 3.63D-09 EMaxC= 1.00D-01 BMatC= 1.55D-15 BMatP= 2.10D-12
@@ -471,12 +471,12 @@ gaussian.178559.boonlay-h00
  Coeff:     -0.106D-06 0.117D-06 0.136D-05 0.275D-05 0.425D-04-0.231D-02
  Coeff:     -0.315D-02-0.129D-01 0.102D+01
  Gap=     0.243 Goal=   None    Shift=    0.000
- RMSDP=1.47D-09 MaxDP=1.72D-08 DE=-2.90D-12 OVMax= 3.62D-08
+ RMSDP=1.50D-09 MaxDP=1.75D-08 DE=-3.69D-12 OVMax= 3.62D-08
 
  SCF Done:  E(RB3LYP) =  -232.254405534     A.U. after    9 cycles
-             Convg  =    0.1467D-08             -V/T =  2.0070
+             Convg  =    0.1497D-08             -V/T =  2.0070
  KE= 2.306346104788D+02 PE=-9.434945757996D+02 EE= 2.777069487016D+02
- Leave Link  502 at Wed Mar 30 19:20:34 2016, MaxMem= 1610612736 cpu:      24.5
+ Leave Link  502 at Fri Apr  1 15:45:10 2016, MaxMem= 1610612736 cpu:      44.0
  (Enter /usr/local/gaussian/g09/l601.exe)
  Copying SCF densities to generalized density rwf, IOpCl= 0 IROHF=0.
 
@@ -583,17 +583,17 @@ gaussian.178559.boonlay-h00
  XXYZ=              0.0401 YYXZ=             -0.0032 ZZXY=            -26.3625
  N-N= 2.028986110856D+02 E-N=-9.434945754184D+02  KE= 2.306346104788D+02
  No NMR shielding tensors so no spin-rotation constants.
- Leave Link  601 at Wed Mar 30 19:20:34 2016, MaxMem= 1610612736 cpu:       0.8
+ Leave Link  601 at Fri Apr  1 15:45:10 2016, MaxMem= 1610612736 cpu:       0.8
  (Enter /usr/local/gaussian/g09/l701.exe)
  Compute integral first derivatives.
  ... and contract with generalized density number  0.
    1 Symmetry operations used in ECPInt.
  ECPInt:  NShTT=     903 NPrTT=    4782 LenC2=     904 LenP2D=    3780.
  LDataN:  DoStor=T MaxTD1= 5 Len=  102
- Leave Link  701 at Wed Mar 30 19:20:34 2016, MaxMem= 1610612736 cpu:       0.9
+ Leave Link  701 at Fri Apr  1 15:45:11 2016, MaxMem= 1610612736 cpu:       1.0
  (Enter /usr/local/gaussian/g09/l702.exe)
  L702 exits ... SP integral derivatives will be done elsewhere.
- Leave Link  702 at Wed Mar 30 19:20:34 2016, MaxMem= 1610612736 cpu:       0.2
+ Leave Link  702 at Fri Apr  1 15:45:11 2016, MaxMem= 1610612736 cpu:       0.1
  (Enter /usr/local/gaussian/g09/l703.exe)
  Compute integral first derivatives, UseDBF=F ICtDFT=           0.
  Integral derivatives from FoFDir, PRISM(SPDF).
@@ -604,9 +604,9 @@ gaussian.178559.boonlay-h00
          NMat0=    1 NMatS0=    1 NMatT0=    0 NMatD0=    1 NMtDS0=    0 NMtDT0=    0
          I1Cent=           0 NGrid=           0.
  Symmetry not used in FoFCou.
- Leave Link  703 at Wed Mar 30 19:20:35 2016, MaxMem= 1610612736 cpu:       7.8
+ Leave Link  703 at Fri Apr  1 15:45:14 2016, MaxMem= 1610612736 cpu:      14.3
  (Enter /usr/local/gaussian/g09/l716.exe)
- Dipole        = 2.87431939D-07-2.37632332D-08 1.31940123D-07
+ Dipole        = 2.87427697D-07-2.37639295D-08 1.31940115D-07
  -------------------------------------------------------------------
  Center     Atomic                   Forces (Hartrees/Bohr)
  Number     Number              X              Y              Z
@@ -625,7 +625,7 @@ gaussian.178559.boonlay-h00
      12        1          -0.000002396   -0.000000053    0.000000089
  -------------------------------------------------------------------
  Cartesian Forces:  Max     0.000020781 RMS     0.000008854
- Leave Link  716 at Wed Mar 30 19:20:35 2016, MaxMem= 1610612736 cpu:       0.2
+ Leave Link  716 at Fri Apr  1 15:45:15 2016, MaxMem= 1610612736 cpu:       0.1
  (Enter /usr/local/gaussian/g09/l103.exe)
 
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
@@ -776,7 +776,7 @@ gaussian.178559.boonlay-h00
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
 
  Largest change from initial coordinates is atom    0       0.000 Angstoms.
- Leave Link  103 at Wed Mar 30 19:20:35 2016, MaxMem= 1610612736 cpu:       0.1
+ Leave Link  103 at Fri Apr  1 15:45:16 2016, MaxMem= 1610612736 cpu:       0.1
  (Enter /usr/local/gaussian/g09/l202.exe)
                           Input orientation:                          
  ---------------------------------------------------------------------
@@ -827,9 +827,9 @@ gaussian.178559.boonlay-h00
  Deg. of freedom    30
  Full point group                 C1      NOp   1
  Rotational constants (GHZ):      5.6697220      5.6697213      2.8348608
- Leave Link  202 at Wed Mar 30 19:20:35 2016, MaxMem= 1610612736 cpu:       0.0
+ Leave Link  202 at Fri Apr  1 15:45:19 2016, MaxMem= 1610612736 cpu:       0.0
  (Enter /usr/local/gaussian/g09/l9999.exe)
- 1\1\GINC-BOONLAY-C09\FOpt\RB3LYP\GenECP\C6H6\RWANG013\30-Mar-2016\0\\#
+ 1\1\GINC-BOONLAY-C02\FOpt\RB3LYP\GenECP\C6H6\RWANG013\01-Apr-2016\0\\#
  p b3lyp/genecp nosymm geom=connectivity opt\\opt-title\\0,1\C,-0.19606
  60323,0.0839546103,0.0000603594\C,1.2028250763,0.083884471,0.000506018
  9\C,1.902331654,1.2953250354,-0.0000471364\C,1.2029467077,2.506835148,
@@ -838,22 +838,16 @@ gaussian.178559.boonlay-h00
  71\H,1.7464164212,-0.8577500156,0.0012814516\H,2.9896068228,1.29527062
  54,0.0002992971\H,1.7466322779,3.4484155332,-0.0014750375\H,-0.7395361
  242,3.4485395988,-0.0022663791\H,-1.9827261712,1.295519561,-0.00128457
- 39\\Version=EM64L-G09RevB.01\HF=-232.2544055\RMSD=1.467e-09\RMSF=8.854
+ 39\\Version=EM64L-G09RevB.01\HF=-232.2544055\RMSD=1.497e-09\RMSF=8.854
  e-06\Dipole=0.0000003,0.,0.0000001\Quadrupole=2.0388614,2.0384882,-4.0
  773495,-0.0000008,0.0019476,-0.0039195\PG=C01 [X(C6H6)]\\@
 
 
+ IF AT FIRST YOU DON'T SUCCEED, TRY, TRY AGAIN.
+ THEN GIVE UP;
+ THERE'S NO USE BEING A DAMN FOOL ABOUT IT.
 
- WE LOSE BECAUSE WE WIN
-
- GAMBLERS,
-
- RECOLLECTING WHICH,
-
- TOSS THEIR DICE AGAIN....
-
-
-                          EMILY DICKINSON  BOLTS OF MELODY NO. 533
- Job cpu time:  0 days  0 hours  0 minutes 40.1 seconds.
+                                 -- W. C. FIELDS
+ Job cpu time:  0 days  0 hours  1 minutes 11.3 seconds.
  File lengths (MBytes):  RWF=     15 Int=      0 D2E=      0 Chk=      2 Scr=      1
- Normal termination of Gaussian 09 at Wed Mar 30 19:20:36 2016.
+ Normal termination of Gaussian 09 at Fri Apr  1 15:45:22 2016.

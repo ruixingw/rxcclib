@@ -16,6 +16,7 @@ class TestMole(unittest.TestCase):
         self.mole.addbond(1,2)
         self.mole.addbond(1,3)
         self.mole.addbond(3,4)
+        self.assertTrue(isinstance(self.mole.bond(1,3),rxmol.Bond))
 
         self.mole.addangle(2,1,3)
         self.mole.addangle(4,3,1)
@@ -34,17 +35,23 @@ class TestMole(unittest.TestCase):
         # def __next__
         self.assertEqual(next(ite).name,'O1')
         self.assertEqual(next(ite).name,'H2')
+        ite2=iter(self.mole)
+        self.assertEqual(next(ite2).name,'O1')
+        self.assertEqual(next(ite2).name,'H2')
         self.assertEqual(next(ite).name,'O3')
         self.assertEqual(next(ite).name,'H4')
+        self.assertEqual(next(ite2).name,'O3')
+        self.assertEqual(next(ite2).name,'H4')
+
         # def __getitem__
         self.assertEqual(str(self.mole[1].name),'O1')
 
     def test_mole(self):
         # @property xyz
-        np.testing.assert_array_equal(self.mole[1].xyz,np.array([0.0,0.0,0.0]))
-        np.testing.assert_array_equal(self.mole[2].xyz,np.array([0.0,1.0,0.0]))
-        np.testing.assert_array_equal(self.mole[3].xyz,np.array([0.0,0.0,0.5291772086]))
-        np.testing.assert_array_equal(self.mole[4].xyz,np.array([1.0,0.0,0.0]))
+        np.testing.assert_array_equal(self.mole[1].coords,np.array([0.0,0.0,0.0]))
+        np.testing.assert_array_equal(self.mole[2].coords,np.array([0.0,1.0,0.0]))
+        np.testing.assert_array_equal(self.mole[3].coords,np.array([0.0,0.0,0.5291772086]))
+        np.testing.assert_array_equal(self.mole[4].coords,np.array([1.0,0.0,0.0]))
         # @property atomnum
         self.assertEqual(self.mole[1].atomnum,1)
         # @property elementid
@@ -53,6 +60,7 @@ class TestMole(unittest.TestCase):
         self.assertEqual(self.mole[1].atomsym,'O')
         # @property name
         self.assertEqual(self.mole[1].name,'O1')
+        self.assertEqual(self.mole[1].atomtype,'O1')
         # @property mymolecule
         self.assertEqual(str(self.mole.atom(1).mymolecule.name),'H2O2')
     # test_bond(self):

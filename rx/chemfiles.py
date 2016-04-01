@@ -3,7 +3,7 @@ from __future__ import print_function
 import os,time
 import numpy as np
 
-class chemfileParseError(Exception):
+class rxccError(Exception):
     def __init(self,value):
         self.value=value
     def __repr__(self):
@@ -55,7 +55,7 @@ class File(object):
             self.__natoms=value
         else:
             if self.__natoms!=value:
-                raise chemfileParseError("Error: natoms is already read, and not consistent with new value.")
+                raise rxccError("Error: natoms is already read, and not consistent with new value.")
     @property
     def multiplicity(self):
         return self.__mlpty
@@ -65,7 +65,7 @@ class File(object):
             self.__mlpty=value
         else:
             if self.__mlpty!=value:
-                raise chemfileParseError("Error: multiplicity is already read, and not consistent with new value")
+                raise rxccError("Error: multiplicity is already read, and not consistent with new value")
     @property
     def totalcharge(self):
         return self.__totalcharge
@@ -75,7 +75,7 @@ class File(object):
             self.__totalcharge=value
         else:
             if self.__totalcharge!=value:
-                raise chemfileParseError("Error: totalcharge is already read, and not consistent with new value")
+                raise rxccError("Error: totalcharge is already read, and not consistent with new value")
     @property
     def xyzfile(self):
         souc='fchk'
@@ -99,11 +99,11 @@ class File(object):
     # Parse
     def readfchk(self):
         if not self.fchk.read():
-            raise chemfileParseError("Error in reading fchk:"+self.fchkname)
+            raise rxccError("Error in reading fchk:"+self.fchkname)
 
     def readac(self):
         if not self.ac.read():
-            raise chemfileParseError("Error in reading ac:"+self.acname)
+            raise rxccError("Error in reading ac:"+self.acname)
 
     # File operation
     def rung09(self):
@@ -115,19 +115,18 @@ class File(object):
     def isover(self):
         state=self.com.isover()
 
-    def formchk(self):
+    def runformchk(self):
         string='formchk '+self.chkname+' '+self.fchkname
         print('  ',string)
         iferror=os.popen(string)
         if iferror.read().find('Error')>=0:
-            print('   Error in formatting',self.chkname)
+            raise rxccError('   Error in formatting'+self.chkname)
             iferror.close()
             return False
         iferror.close()
         return True
     def runantecham(self):
-        print(self.ac())
-        self.ac().antecha()
+        self.log.runantecham()
 
 
 
@@ -198,7 +197,7 @@ class gauFCHK(object):
     @property
     def hessian(self):
         if self.__hessian==False:
-            raise chemfileParseError('Hessian has not been read from:'+self.__father.fchkname)
+            raise rxccError('Hessian has not been read from:'+self.__father.fchkname)
         else:
             return self.__hessian
     @property
@@ -399,7 +398,7 @@ class gauLOG(object):
                 return ['No Freq found']
         self.__freq=freq
         return self.__freq
-    def runantechm(self):
+    def runantecham(self):
         print('Runing antechamber: \n')
         command=gauLOG.antecommand+' -i '+self.__father.logname+' -fi gout -o '+self.__father.acname+' -fo ac'
         print(command)

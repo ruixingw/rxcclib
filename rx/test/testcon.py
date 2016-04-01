@@ -9,9 +9,9 @@ from io import StringIO
 class TestConnect(unittest.TestCase):
     def test_xyzfile(self):
         benzene=rxmol.molecule("benzene")
-        benfile=rxccf.File("ben")
+        benfile=rxccf.File("benfreq")
         benfile.readfchk()
-        xyzfile=benfile.xyzfile()
+        xyzfile=benfile.xyzfile
         xyzfile=StringIO(xyzfile)
         benzene.readfromxyz(xyzfile)
         for atom in benzene:
