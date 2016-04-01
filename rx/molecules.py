@@ -139,14 +139,9 @@ class molecule(object):
                 L.append(self.__atomlist[x])
             return L
     def __iter__(self):
-#        self.__pointer=0
-        return self
-    def __next__(self):
-        self.__pointer+=1
-        if self.__pointer <=self.natoms:
-            return self[self.__pointer]
-        else:
-            raise StopIteration("Exceeded all atoms")
+        for i in range(self.natoms):
+            yield self[i+1]
+
 
 
     # Read structure from coords
