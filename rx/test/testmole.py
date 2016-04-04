@@ -4,8 +4,8 @@ import unittest
 
 class TestMole(unittest.TestCase):
     def setUp(self):
-        self.mole=rxmol.molecule("H2O2")
-        self.assertTrue(isinstance(self.mole,rxmol.molecule))
+        self.mole=rxmol.Molecule("H2O2")
+        self.assertTrue(isinstance(self.mole,rxmol.Molecule))
 
         self.mole.addatom('O',np.array([0.0,0.0,0.0]),unit='angstrom')
         self.mole.addatom('H',np.array([0.0,1.0,0.0]),unit='angstrom')
@@ -82,8 +82,9 @@ class TestMole(unittest.TestCase):
         self.mole.addanglefunc(self.mole.angle(4,3,1))
         self.mole.adddihdfunc(self.mole.dihd(2,1,3,4))
 
+        print(rxmol.Atom.idtosym)
     def test_readfile(self):
-        benz=rxmol.molecule("Benzene")
+        benz=rxmol.Molecule("Benzene")
         with open('ben.xyz','r') as f:
             benz.readfromxyz(f)
         for atom in benz:

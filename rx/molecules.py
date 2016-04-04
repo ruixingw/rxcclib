@@ -8,7 +8,7 @@ class MoleDefError(Exception):
     def __str__(self):
         return repr(self.value)
 
-class molecule(object):
+class Molecule(object):
     def __init__(self,moleculename):
         if not isinstance(moleculename,str):
             raise MoleDefError('Error: Molecule name must be str')
@@ -181,8 +181,16 @@ class Atom(object):
     __idtosym={1:'H',5:'B',6:'C',7:'N',8:'O',9:'F',13:'Al',14:'Si',15:'P',16:'S',17:'Cl',26:'Fe',28:'Ni',29:'Cu',30:'Zn'}
     __symtoid={v:k for k,v in __idtosym.items()}
 
+    @property
+    @classmethod
+    def idtosym(cls):
+        return Atom.__idtosym
+    @property
+    @classmethod
+    def symtoid(cls):
+        return Atom.__symtoid
     def __init__(self,mole,idorsym,coords,unit='bohr'):  # molecule object,int,[float,float,float]
-        assert isinstance(mole,molecule),"First argument must be a molecule object!. Use molecule.addatom method to avoid this problem."
+        assert isinstance(mole,Molecule),"First argument must be a molecule object!. Use molecule.addatom method to avoid this problem."
         assert unit!='bohr' or unit!='angstrom', "Coordinate unit must be bohr or angstrom"
         self.__mymolecule=mole
         if isinstance(idorsym,int):
