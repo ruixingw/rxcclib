@@ -1,6 +1,7 @@
 # Molecules, atoms definition
 from __future__ import print_function
 import numpy as np
+import cclib.parser.utils as cclibutils
 
 class MoleDefError(Exception):
     def __init__(self,value):
@@ -14,7 +15,7 @@ class Molecule(object):
             raise MoleDefError('Error: Molecule name must be str')
 
         self.name=moleculename
-        self.__atomlist=[0]
+        self.__atomlist=[None]
         self.__bondlist={}
         self.__anglelist={}
         self.__dihdlist={}
@@ -25,6 +26,15 @@ class Molecule(object):
     @property
     def natoms(self):
         return len(self.__atomlist)-1
+    @property
+    def bondlist(self):
+        return self.__bondlist
+    @property
+    def anglelist(self):
+        return self.__anglelist
+    @property
+    def dihdlist(self):
+        return self.__dihdlist
     # Add atom and internal coordinates
     def addatom(self,idorsym,coords,unit='bohr'):
         self.__atomlist.append(Atom(self,idorsym,coords,unit))
@@ -33,6 +43,7 @@ class Molecule(object):
         if atomnum1>atomnum2:
             atomnum1,atomnum2=atomnum2,atomnum1
         self.__bondlist.update({str(atomnum1)+','+str(atomnum2):Bond(self,atomnum1,atomnum2)})
+
 
     def addangle(self,atomnum1,atomnum2,atomnum3):
         if atomnum1>atomnum3:
@@ -154,6 +165,75 @@ class Molecule(object):
                 atom=int(atom)
             coords=np.array([tmp[1],tmp[2],tmp[3]],dtype=float)
             self.addatom(atom,coords,unit='angstrom')
+    # Read connectivity
+    def readconnectivity(self,filelikeobj):
+        f=filelikeobj
+        for line in f:
+            try: tmp=line.split()
+            except:
+                print('End of connectivity, return.')
+                return
+            ite=iter(tmp)
+            item0=next(ite)
+            if not item0.isdigit():
+                print('End of connectivity, return.')
+                return
+            a=int(item0)
+            try:
+                b=int(next(ite))
+            except StopIteration:
+                continue
+            self.addbond(a,b)
+            while True:
+                try:
+                    b=next(ite)
+                    b=next(ite)
+                    b=int(b)
+                    self.addbond(a,b)
+                except StopIteration:
+                    break
+        self.geninlcoords()
+    def geninlcoords(self):
+        angles=[]
+        dihds=[]
+        for atom1 in self:  # atom1: atom obj
+            for atom2 in atom1.neighbor:  # atom2: atomnum
+                if atom2==atom1.atomnum:
+                    continue
+                for atom3 in self[atom2].neighbor: #atom3: atomnum
+                    if atom3==atom2 or atom3==atom1.atomnum:
+                        continue
+                    a=atom1.atomnum
+                    b=atom2
+                    c=atom3
+                    if a>c:
+                        a,c=c,a
+                    angles.append(str(a)+'-'+str(b)+'-'+str(c))
+                    for atom4 in self[atom3].neighbor:
+                        if atom4==atom3 or atom4==atom2 or atom4==atom1.atomnum:
+                            continue
+                        a=atom1.atomnum
+                        b=atom2
+                        c=atom3
+                        d=atom4
+                        if b>c:
+                            b,c=c,b
+                            a,d=d,a
+                        elif b==c:
+                            if a>d:
+                                a,d=d,a
+                        dihds.append(str(a)+'-'+str(b)+'-'+str(c)+'-'+str(d))
+        angles=list(set(angles))
+        dihds=list(set(dihds))
+        for item in angles:
+            tmp=[int(x) for x in item.split('-')]
+            self.addangle(*tmp)
+        for item in dihds:
+            tmp=[int(x) for x in item.split('-')]
+            self.adddihd(*tmp)
+
+
+
 
 class Atom(object):
     '''
@@ -177,18 +257,12 @@ class Atom(object):
     >>> mole.atom(1).atomtype
     'c2'
     '''
-    bohr=0.5291772086 # bohr to angstrom
-    __idtosym={1:'H',5:'B',6:'C',7:'N',8:'O',9:'F',13:'Al',14:'Si',15:'P',16:'S',17:'Cl',26:'Fe',28:'Ni',29:'Cu',30:'Zn'}
-    __symtoid={v:k for k,v in __idtosym.items()}
-
-    @property
-    @classmethod
-    def idtosym(cls):
-        return Atom.__idtosym
-    @property
-    @classmethod
-    def symtoid(cls):
-        return Atom.__symtoid
+#    bohr=0.5291772086 # bohr to angstrom
+ #   __idtosym={1:'H',5:'B',6:'C',7:'N',8:'O',9:'F',13:'Al',14:'Si',15:'P',16:'S',17:'Cl',26:'Fe',28:'Ni',29:'Cu',30:'Zn'}
+#    __symtoid={v:k for k,v in __idtosym.items()}
+    periotable=cclibutils.PeriodicTable()
+    __idtosym=periotable.element
+    __symtoid=periotable.number
     def __init__(self,mole,idorsym,coords,unit='bohr'):  # molecule object,int,[float,float,float]
         assert isinstance(mole,Molecule),"First argument must be a molecule object!. Use molecule.addatom method to avoid this problem."
         assert unit!='bohr' or unit!='angstrom', "Coordinate unit must be bohr or angstrom"
@@ -209,12 +283,27 @@ class Atom(object):
                 raise MoleDefError("Error when adding atom: Expected atomic NO(int) or symbol(str) for input, received a"+str(type(idorsym)))
 
         if unit=='bohr':
-            self.__coords=Atom.bohr*coords
+            self.__coords=cclibutils.convertor(coords,"bohr","Angstrom")
         elif unit=='angstrom':
             self.__coords=coords
 
         self.__atomnum=mole.natoms+1
         self.atomtype=self.name
+        self.__neighbor=[]
+    @property
+    def neighbor(self):
+        return self.__neighbor
+    def addneighbor(self,atomnum):
+        if isinstance(atomnum,int):
+            self.__neighbor.append(atomnum)
+            self.__neighbor=list(set(self.__neighbor))
+        else:
+            raise MoleDefError("Error when adding neighbor: atomnum must be an integer.")
+    def delneighbor(self,atomnum):
+        if isinstance(atomnum,int):
+            self.__neighbor.remove(atomnum)
+        else:
+            raise MoleDefError("Error when deleting neighbor: atomnum must be an integer.")
 
     @property
     def coords(self):
@@ -252,6 +341,8 @@ class Bond(object):
         self.__b=mole[b]
         self.__vec=self.__a.coords-self.__b.coords
         self.bondtype=self.__a.name+' '+self.__b.name
+        self.__a.addneighbor(b)
+        self.__b.addneighbor(a)
     def __getitem__(self,value):
         if value==1:
             return self.__a

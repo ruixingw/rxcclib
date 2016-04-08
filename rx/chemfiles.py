@@ -12,12 +12,13 @@ class rxccError(Exception):
 class File(object):
 
     def __init__(self,name):
-        self.__name=name
-        self.comname=name+'.com'
-        self.logname=name+'.log'
-        self.chkname=name+'.chk'
-        self.fchkname=name+'.fchk'
-        self.acname=name+'.ac'
+        pwd=os.path.abspath('.')
+        self.__name=os.path.join(pwd,name)
+        self.comname=self.__name+'.com'
+        self.logname=self.__name+'.log'
+        self.chkname=self.__name+'.chk'
+        self.fchkname=self.__name+'.fchk'
+        self.acname=self.__name+'.ac'
         self.__com=gauCOM(self)
         self.__log=gauLOG(self)
         self.__fchk=gauFCHK(self)
@@ -55,7 +56,7 @@ class File(object):
             self.__natoms=value
         else:
             if self.__natoms!=value:
-                raise rxccError("Error: natoms is already read, and not consistent with new value.")
+                raise rxccError("Error: natoms is already read, and not consistent with new value: Now is "+str(self.__natoms)+", New value is "+str(value))
     @property
     def multiplicity(self):
         return self.__mlpty
@@ -65,7 +66,7 @@ class File(object):
             self.__mlpty=value
         else:
             if self.__mlpty!=value:
-                raise rxccError("Error: multiplicity is already read, and not consistent with new value")
+                raise rxccError("Error: multiplicity is already read, and not consistent with new value: Now is "+str(self.__mlpty)+", New value is "+str(value))
     @property
     def totalcharge(self):
         return self.__totalcharge
@@ -75,7 +76,7 @@ class File(object):
             self.__totalcharge=value
         else:
             if self.__totalcharge!=value:
-                raise rxccError("Error: totalcharge is already read, and not consistent with new value")
+                raise rxccError("Error: totalcharge is already read, and not consistent with new value: Now is "+str(self.__totalcharge)+", New value is "+str(value))
     @property
     def xyzfile(self):
         souc='fchk'
@@ -289,8 +290,8 @@ class gauCOM(object):
                     self.__coordslist.extend(line.split()[1:4])
 
                 if counter==2:
-                    self.__father.multiplicity=int(line.split()[0])
-                    self.__father.totalcharge=int(line.split()[1])
+                    self.__father.multiplicity=int(line.split()[1])
+                    self.__father.totalcharge=int(line.split()[0])
                     while counter==2:
                         line=next(f)
                         if line=='\n':

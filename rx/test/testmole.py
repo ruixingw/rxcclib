@@ -81,14 +81,20 @@ class TestMole(unittest.TestCase):
         self.mole.addanglefunc(self.mole.angle(2,1,3))
         self.mole.addanglefunc(self.mole.angle(4,3,1))
         self.mole.adddihdfunc(self.mole.dihd(2,1,3,4))
+    # test neighbor
 
-        print(rxmol.Atom.idtosym)
     def test_readfile(self):
         benz=rxmol.Molecule("Benzene")
-        with open('ben.xyz','r') as f:
+        with open('samples/ben.xyz','r') as f:
             benz.readfromxyz(f)
-        for atom in benz:
-            print(atom.name)
+        self.assertEqual(benz[1].name,'C1')
+        self.assertEqual(benz[12].name,'H12')
+        #test_connty
+        with open('samples/cnnty.com','r') as f:
+            benz.readconnectivity(f)
+        self.assertEqual(len(benz.bondlist.values()),12)
+        self.assertEqual(len(benz.anglelist.values()),18)
+        self.assertEqual(len(benz.dihdlist.values()),24)
 if __name__=='__main__':
     import numpy as np
     unittest.main()

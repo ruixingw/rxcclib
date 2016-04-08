@@ -8,14 +8,14 @@ from io import StringIO
 
 class TestConnect(unittest.TestCase):
     def test_xyzfile(self):
-        benzene=rxmol.molecule("benzene")
-        benfile=rxccf.File("benfreq")
+        benzene=rxmol.Molecule("benzene")
+        benfile=rxccf.File("samples/bencom")
         benfile.readfchk()
         xyzfile=benfile.xyzfile
         xyzfile=StringIO(xyzfile)
         benzene.readfromxyz(xyzfile)
-        for atom in benzene:
-            print(atom.name)
+        self.assertEqual(benzene[1].name,'C1')
+        self.assertEqual(benzene[12].name,'H12')
 
 
 if __name__=='__main__':
