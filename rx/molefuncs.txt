@@ -1,0 +1,58 @@
+# Molecules, atoms definition
+    def natoms(self):
+    def bondlist(self):
+    def anglelist(self):
+    def dihdlist(self):
+    def addatom(self,idorsym,coords,unit='bohr'):
+    def addbond(self,atomnum1,atomnum2):
+    def addangle(self,atomnum1,atomnum2,atomnum3):
+    def adddihd(self,atomnum1,atomnum2,atomnum3,atomnum4):
+    def atom(self,atomnum):
+    def bond(self,atomnum1,atomnum2):
+    def angle(self,atomnum1,atomnum2,atomnum3):
+    def dihd(self,atomnum1,atomnum2,atomnum3,atomnum4):
+    def addbondfunc(self,bondobj):
+    def addanglefunc(self,angleobj):
+    def adddihdfunc(self,dihdobj):
+    def readfromxyz(self,filelikeobj):
+    def readconnectivity(self,filelikeobj):
+    def geninlcoords(self):
+    def readtypefromlist(self,L):
+    def readchargefromlist(self,L):
+
+
+    def neighbor(self):
+    def addneighbor(self,atomnum):
+    def delneighbor(self,atomnum):
+    def coords(self):
+    def name(self):
+    def atomnum(self):
+    def elementid(self):
+    def atomsym(self):
+    def mymolecule(self):
+    def __str__(self):
+    # def mymolecule(self,value):
+    def __init__(self,mole,a,b): # self, atomid a, atomid b
+    def __getitem__(self,value):
+    def a(self):
+    def b(self):
+    def length(self):
+    def __str__(self):
+    def __init__(self,mole,a,b,c):
+    def __getitem__(self,value):
+    def a(self):
+    def b(self):
+    def c(self):
+    def anglevalue(self):
+    def __str__(self):
+    def __init__(self,mole,a,b,c,d):
+    def __getitem__(self,value):
+    def a(self):
+    def b(self):
+    def c(self):
+    def d(self):
+    def dihdvalue(self):
+    def __str__(self):
+    def __init__(self,mole,bondobj):
+    def __init__(self,molecule,angleobj):
+    def __init__(self,molecule,dihdobj):
