@@ -2,6 +2,7 @@
 from __future__ import print_function
 import numpy as np
 import cclib.parser.utils as cclibutils
+from io import StringIO
 
 class MoleDefError(Exception):
     def __init__(self,value):
@@ -23,6 +24,15 @@ class Molecule(object):
         self.__anglefunclist={}
         self.__dihdfunclist={}
         self.__pointer=0
+    @property
+    def bondfunclist(self):
+        return self.__bondfunclist
+    @property
+    def anglefunclist(self):
+        return self.__anglefunclist
+    @property
+    def dihdfunclist(self):
+        return self.__dihdfunclist
     @property
     def natoms(self):
         return len(self.__atomlist)-1
@@ -166,8 +176,8 @@ class Molecule(object):
             coords=np.array([tmp[1],tmp[2],tmp[3]],dtype=float)
             self.addatom(atom,coords,unit='angstrom')
     # Read connectivity
-    def readconnectivity(self,filelikeobj):
-        f=filelikeobj
+    def readconnectivity(self,conntystring):
+        f=StringIO(conntystring)
         for line in f:
             try: tmp=line.split()
             except:
@@ -231,7 +241,20 @@ class Molecule(object):
         for item in dihds:
             tmp=[int(x) for x in item.split('-')]
             self.adddihd(*tmp)
-
+    def readtypefromlist(self,L):
+        if len(L)!=len(self.__atomlist):
+            raise MoleDefError("Error when reading atomtype from list: length is not consistent with natoms")
+        ite=iter(L)
+        next(ite)
+        for atom in self:
+            atom.atomtype=next(ite)
+    def readchargefromlist(self,L):
+        if len(L)!=len(self.__atomlist):
+            raise MoleDefError("Error when reading atomcharge from list: length is not consistent with natoms")
+        ite=iter(L)
+        next(ite)
+        for atom in self:
+            atom.atomcharge=next(ite)
 
 
 
@@ -290,6 +313,7 @@ class Atom(object):
         self.__atomnum=mole.natoms+1
         self.atomtype=self.name
         self.__neighbor=[]
+        self.atomcharge=None
     @property
     def neighbor(self):
         return self.__neighbor
@@ -340,8 +364,9 @@ class Bond(object):
         self.__a=mole[a]
         self.__b=mole[b]
         self.__vec=self.__a.coords-self.__b.coords
-        self.bondtype=self.__a.name+' '+self.__b.name
+        self.mybondtype=self.__a.name+' '+self.__b.name
         self.__a.addneighbor(b)
+        self.parm=0.0
         self.__b.addneighbor(a)
     def __getitem__(self,value):
         if value==1:
@@ -350,6 +375,9 @@ class Bond(object):
             return self.__b
         else:
             raise MoleDefError("Index for bond object must be 1 or 2.")
+    @property
+    def vec(self):
+        return self.__vec
     @property
     def a(self):
         return self.__a
@@ -370,7 +398,8 @@ class Angle(object):
         self.__c=mole[c]
         self.__ab=mole[a].coords-mole[b].coords
         self.__bc=mole[b].coords-mole[c].coords
-        self.angletype=self.__a.name+' '+self.__b.name+' '+self.__c.name
+        self.myangletype=self.__a.name+' '+self.__b.name+' '+self.__c.name
+        self.parm=0.0
     def __getitem__(self,value):
         if value==1:
             return self.__a
@@ -400,7 +429,7 @@ class Angle(object):
                 return 0.0
             else:
                 return 180.0
-        return angle
+        return 180-angle
     def __str__(self):
         return "Angle object of angle "+self.a.name+'-'+self.b.name+'-'+self.c.name
 class Dihd(object):
@@ -415,7 +444,8 @@ class Dihd(object):
         self.__b=mole[b]
         self.__c=mole[c]
         self.__d=mole[d]
-        self.dihdtype=self.__a.name+' '+self.__b.name+' '+self.__c.name+' '+self.__d.name
+        self.parm=0.0
+        self.mydihdtype=self.__a.name+' '+self.__b.name+' '+self.__c.name+' '+self.__d.name
     def __getitem__(self,value):
         if value==1:
             return self.__a
@@ -486,6 +516,9 @@ class Dihdfunc(object):
         b=dihdobj[2].atomtype
         c=dihdobj[3].atomtype
         d=dihdobj[4].atomtype
+        self.periodicity=2
+        self.phase=180.0
+        self.npaths=1.0
         if b>c:
             a,d=d,a
             b,c=c,b

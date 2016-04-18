@@ -91,10 +91,12 @@ class TestMole(unittest.TestCase):
         self.assertEqual(benz[12].name,'H12')
         #test_connty
         with open('samples/cnnty.com','r') as f:
-            benz.readconnectivity(f)
+            cn=f.read()
+        benz.readconnectivity(cn)
         self.assertEqual(len(benz.bondlist.values()),12)
         self.assertEqual(len(benz.anglelist.values()),18)
         self.assertEqual(len(benz.dihdlist.values()),24)
+        print(benz.angle(1,2,3).anglevalue)
 if __name__=='__main__':
     import numpy as np
     unittest.main()

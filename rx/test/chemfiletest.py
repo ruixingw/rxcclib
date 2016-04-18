@@ -1,6 +1,7 @@
 import rx.chemfiles as rxccfile
 import rx.molecules as rxmol
 import unittest,os
+from io import StringIO
 
 rxccfile.gauCOM.g09rt='myg09boon'
 rxccfile.gauCOM.g09a2rt='myg09a2boon'
@@ -39,6 +40,11 @@ class TestFile(unittest.TestCase):
         self.assertEqual(self.file.atomchargelist[1],-0.117738)
         self.assertEqual(self.file.atomchargelist[12],0.117738)
         os.system('rm A* q* Q* p* esout *gaussian* samples/bencom.fchk samples/bencom.chk samples/bencom.log')
+    # def test_MMcom(self):
+    #     mmfile=rxccfile.File('samples/mmfile')
+    #     mmfile.com.read()
+    #     xyz=StringIO(mmfile.com.xyz)
+
 
 
 

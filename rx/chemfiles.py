@@ -2,6 +2,8 @@
 from __future__ import print_function
 import os,time
 import numpy as np
+from io import StringIO
+import rx.molecules as rxmol
 
 class rxccError(Exception):
     def __init(self,value):
@@ -84,6 +86,8 @@ class File(object):
             souc=self.default
         if souc=='fchk':
             return self.__fchk.xyz
+        elif souc=='com':
+            return self.__com.xyz
     @property
     def atomtypelist(self):
         return self.__ac.atomtypelist
@@ -128,7 +132,6 @@ class File(object):
         return True
     def runantecham(self):
         self.log.runantecham()
-
 
 
 
@@ -252,39 +255,83 @@ class amberAC(object):
         return self.__charge
 
 class gauCOM(object):
-    g09rt='g09boon'
-    g09a2rt='g09a2boon'
+    g09rt='g09'
+    g09a2rt='g09'
     def __init__(self,father):
         self.__father=father
         self.__xyzfile=''
         self.__atomlist=[None]
+        self.__atomtypelist=[None]
+        self.__atomchargelist=[None]
         self.__coordslist=[]
         self.__connectivity=''
+        self.__dihdfunc=[]
+        self.__anglefunc=[]
+        self.__bondfunc=[]
+        self.additionfunc=[]
+        self.nozomuvdw=[]
+        self.__xyz=''
+        self.commandline=''
+    @property
+    def connectivity(self):
+        return self.__connectivity
+    @property
+    def atomlist(self):
+        return self.__atomlist
+    @property
+    def atomtypelist(self):
+        return self.__atomtypelist
+    @property
+    def atomchargelist(self):
+        return self.__atomchargelist
+    @property
+    def xyz(self):
+        return self.__xyz
+    @property
+    def nozomudihdfunc(self):
+        return self.__dihdfunc
+    @property
+    def nozomuanglefunc(self):
+        return self.__anglefunc
+    @property
+    def nozomubondfunc(self):
+        return self.__bondfunc
+
     # Parse
     def read(self):
         with open(self.__father.comname,'r') as f:
-            line=next(f)
             counter=0
-            command=''
             ifconnect=False
+            ifamber=False
+            line=''
             for line in f:
                 if line=='\n':
                     counter+=1
                     continue
-                if line.find('#')>=0:
+                if counter==0:
                     while True:
-                        command+=line
+                        self.commandline+=line
                         line=next(f)
                         if line=='\n':
                             counter+=1
                             break
-                    if command.find('connectivity')>=0:
+                    if self.commandline.find('connectivity')>=0:
                         ifconnect=True
+                    if self.commandline.find('amber')>=0:
+                        ifamber=True
                 def molespecs(line):
                     self.__xyzfile+=line
                     tmp=line.split()[0]
                     if tmp.find('-')>=0:
                         self.__atomlist.append(tmp.split('-')[0])
+                        if tmp.count('-')==2:
+                            tmp=tmp.split('-')
+                            self.__atomtypelist.append(tmp[1])
+                            self.__atomchargelist.append(tmp[2])
+                        elif tmp.count('-')==3:
+                            tmp=tmp.split('-')
+                            self.__atomtypelist.append(tmp[1])
+                            self.__atomchargelist.append(-float(tmp[3]))
                     else:
                         self.__atomlist.append(tmp)
                     self.__coordslist.extend(line.split()[1:4])
@@ -310,8 +357,33 @@ class gauCOM(object):
                             connect(line)
                             line=next(f)
 
-        self.__coordslist=np.array(self.__coordslist)
+                if counter==4:
+                    if ifamber:
+                        line=next(f)
+                        while counter==4:
+                            if line=='\n':
+                                counter+=1
+                                break
+                            thisline=mmfunction(line)
+                            if thisline.type=='dihd':
+                                self.__dihdfunc.append(thisline)
+                            elif thisline.type=='angle':
+                                self.__anglefunc.append(thisline)
+                            elif thisline.type=='bond':
+                                self.__bondfunc.append(thisline)
+                            elif thisline.type=='else':
+                                self.additionfunc.append(thisline)
+                            elif thisline.type=='vdw':
+                                self.nozomuvdw.append(thisline)
+                            line=next(f)
 
+
+
+
+        self.__coordslist=np.array(self.__coordslist)
+        for i in range(0,len(self.__atomlist)-1):
+            tmp=str(self.__atomlist[i+1])+'   '+str(self.__coordslist[3*i])+'   '+str(self.__coordslist[3*i+1])+'   '+str(self.__coordslist[3*i+2])+'\n'
+            self.__xyz+=tmp
 
 
     # File operation
@@ -371,14 +443,15 @@ class gauLOG(object):
         self.__father=father
         self.__freq=0
     def getnatoms(self):
-        with open(self.__father.getlogname,'r') as f:
+        with open(self.__father.logname,'r') as f:
             for x in f.readlines():
                 if x.find('NAtoms')>=0:
                     self.natoms=int(x.split()[1])
+                    return self.natoms
                     break
 
     def coordslast(self): #Uncomplete
-        with open(self.__father.getlogname,'r') as f:
+        with open(self.__father.logname,'r') as f:
             for x in list(reversed(f.readlines())):
                 if x.find('orientation')>=0:
                     self.orn=x
@@ -404,3 +477,62 @@ class gauLOG(object):
         command=gauLOG.antecommand+' -i '+self.__father.logname+' -fi gout -o '+self.__father.acname+' -fo ac'
         print(command)
         os.system(command)
+class mmfunction(object):
+    magicnum='XXXXXX'
+    def __init__(self,line):
+        tmp=line.split()
+        fun=[]
+        self.type=None
+        self.repr=None
+        for item in tmp:
+            fun.append(item)
+        def newfloat(value):
+            if value=='XXXXXX':
+                return mmfunction.magicnum
+            else:
+                return float(value)
+        if fun[0]=='AmbTrs':
+            self.type='dihd'
+            self.a=fun[1]
+            self.b=fun[2]
+            self.c=fun[3]
+            self.d=fun[4]
+            self.npaths=float(fun[13])
+            for i,paras in enumerate(fun[9:13]):
+                if newfloat(paras)!=0.000:
+                    i+=1
+                    self.value=newfloat(paras)
+                    break
+            self.periodicity=i
+            self.phase=int(fun[4+self.periodicity])
+            self.repr=self.a+' '+self.b+' '+self.c+' '+self.d
+        elif fun[0]=='HrmBnd1':
+            self.type='angle'
+            self.a=fun[1]
+            self.b=fun[2]
+            self.c=fun[3]
+            self.value=newfloat(fun[4])
+            self.eqvalue=newfloat(fun[5])
+            self.repr=self.a+' '+self.b+' '+self.c
+        elif fun[0]=='HrmStr1':
+            self.type='bond'
+            self.a=fun[1]
+            self.b=fun[2]
+            self.value=newfloat(fun[3])
+            self.eqvalue=newfloat(fun[4])
+            self.repr=self.a+' '+self.b
+        # elif fun[0]=='ImpTrs':
+        #     self.type='improper'
+        #     self.a=fun[1]
+        #     self.b=fun[2]
+        #     self.c=fun[3]
+        #     self.d=fun[4]
+        #     self.value=newfloat(fun[5])
+        #     self.eqvalue=newfloat(fun[6])
+        #     self.repr=self.type+self.a+self.b+self.c+self.d
+        elif fun[0]=='VDW':
+            self.type='vdw'
+            self.content=line
+        else:
+            self.type='else'
+            self.content=line
