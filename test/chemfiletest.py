@@ -5,6 +5,7 @@ from io import StringIO
 
 rxccfile.gauCOM.g09rt='myg09boon'
 rxccfile.gauCOM.g09a2rt='myg09a2boon'
+os.system('rm A* q* Q* p* esout *gaussian* samples/bencom.fchk samples/bencom.chk samples/bencom.log')
 class TestFile(unittest.TestCase):
     def test_comfchk(self):
         self.file=rxccfile.File('samples/bencom')
@@ -39,7 +40,6 @@ class TestFile(unittest.TestCase):
         self.assertEqual(self.file.atomchargelist[0],None)
         self.assertEqual(self.file.atomchargelist[1],-0.117738)
         self.assertEqual(self.file.atomchargelist[12],0.117738)
-        os.system('rm A* q* Q* p* esout *gaussian* samples/bencom.fchk samples/bencom.chk samples/bencom.log')
     # def test_MMcom(self):
     #     mmfile=rxccfile.File('samples/mmfile')
     #     mmfile.com.read()

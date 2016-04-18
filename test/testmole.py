@@ -1,5 +1,5 @@
 import rx.molecules as rxmol
-import unittest
+import unittest,os
 
 
 class TestMole(unittest.TestCase):
@@ -97,6 +97,8 @@ class TestMole(unittest.TestCase):
         self.assertEqual(len(benz.anglelist.values()),18)
         self.assertEqual(len(benz.dihdlist.values()),24)
         print(benz.angle(1,2,3).anglevalue)
+        os.system('rm A* q* Q* p* esout *gaussian* samples/bencom.fchk samples/bencom.chk samples/bencom.log')
+
 if __name__=='__main__':
     import numpy as np
     unittest.main()

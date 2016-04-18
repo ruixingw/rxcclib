@@ -26,8 +26,7 @@ class TestConnect(unittest.TestCase):
         benmol.readchargefromlist(mmfile.com.atomchargelist)
         for atom in benmol:
             print(atom,atom.atomtype,atom.atomcharge)
-        cnnty=StringIO(mmfile.com.connectivity)
-        benmol.readconnectivity(cnnty)
+        benmol.readconnectivity(mmfile.com.connectivity)
         print("Bond: ",len(benmol.bondlist.keys()))
         print("Angle: ",len(benmol.anglelist.keys()))
         print("Dihd: ",len(benmol.dihdlist.keys()))

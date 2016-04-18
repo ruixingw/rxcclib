@@ -98,7 +98,7 @@ class File(object):
 
     # fetch data as function
     def find33Hessian(self,i,j):
-        return self.fchk.return33Hessian(i,j)
+        return self.fchk.find33Hessian(i,j)
 
 
     # Parse
@@ -140,17 +140,17 @@ class File(object):
 class gauFCHK(object):
     def __init__(self,father):
         self.__father=father
-        self.__filename=self.__father.name+'.fchk'
-        self.__coordslist=[]
-        self.__atomlist=[None]
-        self.__readstate=None
-        self.__totalcharge=None
-        self.__mlpty=None
-        self.__natoms=None
-        self.__hessian=[]
-        self.__xyz=''
+        self.filename=self.__father.fchkname
+        self.coordslist=[]
+        self.atomlist=[None]
+        self.readstate=None
+        self.totalcharge=None
+        self.multiplicity=None
+        self.natoms=None
+        self.hessian=[]
+        self.xyz=''
     def read(self):
-        if self.__readstate==True:
+        if self.readstate==True:
             print("Warning in fchk.read(): already read")
             return True
         print('Read fchk:',self.__father.fchkname)
@@ -159,61 +159,47 @@ class gauFCHK(object):
             string=next(f)
             for string in f:
                 if string.find('Charge')==0:
-                    self.__totalcharge=int(string.split('I')[1])
-                    self.__father.totalcharge=self.__totalcharge
+                    self.totalcharge=int(string.split('I')[1])
+                    self.__father.totalcharge=self.totalcharge
                 if string.find('Multiplicity')==0:
-                    self.__mlpty=int(string.split('I')[1])
-                    self.__father.multiplicity=self.__mlpty
+                    self.multiplicity=int(string.split('I')[1])
+                    self.__father.multiplicity=self.multiplicity
                 if string.find('Atomic numbers')==0:
-                    self.__natoms=int(string.split('=')[1])
-                    self.__father.natoms=self.__natoms
+                    self.natoms=int(string.split('=')[1])
+                    self.__father.natoms=self.natoms
                     string=next(f)
                     while string.find('Nuclear charges')<0:
-                        self.__atomlist.extend([int(x) for x in string.split()])
+                        self.atomlist.extend([int(x) for x in string.split()])
                         string=next(f)
 
                 if string.find('Current cartesian coordinates')==0:
                     string=next(f)
                     while string.find('Force Field')<0:
-                        self.__coordslist.extend([float(x) for x in string.split()])
+                        self.coordslist.extend([float(x) for x in string.split()])
                         string=next(f)
                 # Read Hessian
                 if string.find('Cartesian Force Constants')==0:
                     string=next(f)
                     while string.find('Dipole')<0:
-                        self.__hessian.extend([float(x) for x in string.split()])
+                        self.hessian.extend([float(x) for x in string.split()])
                         string=next(f)
                 #Stop
-        self.__coordslist=np.array(self.__coordslist)
-        self.__atomlist=np.array(self.__atomlist)
-        self.__hessian=np.array(self.__hessian)
-        for i in range(0,len(self.__atomlist)-1):
-            tmp=str(self.__atomlist[i+1])+'   '+str(self.__coordslist[3*i])+'   '+str(self.__coordslist[3*i+1])+'   '+str(self.__coordslist[3*i+2])+'\n'
-            self.__xyz+=tmp
+        self.coordslist=np.array(self.coordslist)
+        self.atomlist=np.array(self.atomlist)
+        self.hessian=np.array(self.hessian)
+        for i in range(0,len(self.atomlist)-1):
+            tmp=str(self.atomlist[i+1])+'   '+str(self.coordslist[3*i])+'   '+str(self.coordslist[3*i+1])+'   '+str(self.coordslist[3*i+2])+'\n'
+            self.xyz+=tmp
 
         return True
-    @property
-    def xyz(self):
-        return self.__xyz
-    @property
-    def coordslist(self):
-        return self.__coordslist
-    @property
-    def hessian(self):
-        if self.__hessian==False:
-            raise rxccError('Hessian has not been read from:'+self.__father.fchkname)
-        else:
-            return self.__hessian
-    @property
-    def hessian(self):
-        return self.__hessian
+
     def findHessianElement(self,i,j): #i, j: coordinate number
         if i<j:
             i,j=j,i
         num=i*(i-1)/2+j
         num=int(num)
-        return self.__hessian[num-1]
-    def return33Hessian(self,i,j):    #i, j: atom number
+        return self.hessian[num-1]
+    def find33Hessian(self,i,j):    #i, j: atom number
         if i<j:
             i,j=j,i
         tthess=[]
@@ -233,8 +219,8 @@ class amberAC(object):
 
     def __init__(self,father):
         self.__father=father
-        self.__atomtype=[None]
-        self.__charge=[None]
+        self.atomtypelist=[None]
+        self.atomchargelist=[None]
 
     def read(self):
         with open(self.__father.acname,'r') as f:
@@ -244,58 +230,30 @@ class amberAC(object):
                 if string.find('BOND')>=0:
                     break
                 ac=string.split()
-                self.__atomtype.append(ac[len(ac)-1])
-                self.__charge.append(float(ac[len(ac)-2]))
+                self.atomtypelist.append(ac[len(ac)-1])
+                self.atomchargelist.append(float(ac[len(ac)-2]))
         return True
-    @property
-    def atomtypelist(self):
-        return self.__atomtype
-    @property
-    def atomchargelist(self):
-        return self.__charge
+
 
 class gauCOM(object):
     g09rt='g09'
     g09a2rt='g09'
     def __init__(self,father):
         self.__father=father
-        self.__xyzfile=''
-        self.__atomlist=[None]
-        self.__atomtypelist=[None]
-        self.__atomchargelist=[None]
-        self.__coordslist=[]
-        self.__connectivity=''
-        self.__dihdfunc=[]
-        self.__anglefunc=[]
-        self.__bondfunc=[]
+        self.xyzfile=''
+        self.atomlist=[None]
+        self.atomtypelist=[None]
+        self.atomchargelist=[None]
+        self.coordslist=[]
+        self.connectivity=''
+        self.nozomudihdfunc=[]
+        self.nozomuanglefunc=[]
+        self.nozomubondfunc=[]
         self.additionfunc=[]
         self.nozomuvdw=[]
-        self.__xyz=''
+        self.xyz=''
         self.commandline=''
-    @property
-    def connectivity(self):
-        return self.__connectivity
-    @property
-    def atomlist(self):
-        return self.__atomlist
-    @property
-    def atomtypelist(self):
-        return self.__atomtypelist
-    @property
-    def atomchargelist(self):
-        return self.__atomchargelist
-    @property
-    def xyz(self):
-        return self.__xyz
-    @property
-    def nozomudihdfunc(self):
-        return self.__dihdfunc
-    @property
-    def nozomuanglefunc(self):
-        return self.__anglefunc
-    @property
-    def nozomubondfunc(self):
-        return self.__bondfunc
+
 
     # Parse
     def read(self):
@@ -320,21 +278,21 @@ class gauCOM(object):
                     if self.commandline.find('amber')>=0:
                         ifamber=True
                 def molespecs(line):
-                    self.__xyzfile+=line
+                    self.xyzfile+=line
                     tmp=line.split()[0]
                     if tmp.find('-')>=0:
-                        self.__atomlist.append(tmp.split('-')[0])
+                        self.atomlist.append(tmp.split('-')[0])
                         if tmp.count('-')==2:
                             tmp=tmp.split('-')
-                            self.__atomtypelist.append(tmp[1])
-                            self.__atomchargelist.append(tmp[2])
+                            self.atomtypelist.append(tmp[1])
+                            self.atomchargelist.append(tmp[2])
                         elif tmp.count('-')==3:
                             tmp=tmp.split('-')
-                            self.__atomtypelist.append(tmp[1])
-                            self.__atomchargelist.append(-float(tmp[3]))
+                            self.atomtypelist.append(tmp[1])
+                            self.atomchargelist.append(-float(tmp[3]))
                     else:
-                        self.__atomlist.append(tmp)
-                    self.__coordslist.extend(line.split()[1:4])
+                        self.atomlist.append(tmp)
+                    self.coordslist.extend(line.split()[1:4])
 
                 if counter==2:
                     self.__father.multiplicity=int(line.split()[1])
@@ -346,7 +304,7 @@ class gauCOM(object):
                             break
                         molespecs(line)
                 def connect(line):
-                    self.__connectivity+=line
+                    self.connectivity+=line
                 if counter==3:
                     if ifconnect:
                         line=next(f)
@@ -366,11 +324,11 @@ class gauCOM(object):
                                 break
                             thisline=mmfunction(line)
                             if thisline.type=='dihd':
-                                self.__dihdfunc.append(thisline)
+                                self.nozomudihdfunc.append(thisline)
                             elif thisline.type=='angle':
-                                self.__anglefunc.append(thisline)
+                                self.nozomuanglefunc.append(thisline)
                             elif thisline.type=='bond':
-                                self.__bondfunc.append(thisline)
+                                self.nozomubondfunc.append(thisline)
                             elif thisline.type=='else':
                                 self.additionfunc.append(thisline)
                             elif thisline.type=='vdw':
@@ -380,10 +338,10 @@ class gauCOM(object):
 
 
 
-        self.__coordslist=np.array(self.__coordslist)
-        for i in range(0,len(self.__atomlist)-1):
-            tmp=str(self.__atomlist[i+1])+'   '+str(self.__coordslist[3*i])+'   '+str(self.__coordslist[3*i+1])+'   '+str(self.__coordslist[3*i+2])+'\n'
-            self.__xyz+=tmp
+        self.coordslist=np.array(self.coordslist)
+        for i in range(0,len(self.atomlist)-1):
+            tmp=str(self.atomlist[i+1])+'   '+str(self.coordslist[3*i])+'   '+str(self.coordslist[3*i+1])+'   '+str(self.coordslist[3*i+2])+'\n'
+            self.xyz+=tmp
 
 
     # File operation
@@ -391,7 +349,7 @@ class gauCOM(object):
         ifchk=1 # if no chk, add.
         with open(self.__father.comname,'r') as f:
             for line in f.readlines():
-                if line.find('%chk')>=0:
+                if line.find('%chk')>=0:  # !!!!!! leave later
                     line='%chk='+self.__father.chkname+'\n'
                     ifchk=0
             if ifchk==1:
@@ -441,7 +399,7 @@ class gauLOG(object):
     antecommand='antechamber -c resp'
     def __init__(self,father):
         self.__father=father
-        self.__freq=0
+        self.freq=0
     def getnatoms(self):
         with open(self.__father.logname,'r') as f:
             for x in f.readlines():
@@ -450,7 +408,7 @@ class gauLOG(object):
                     return self.natoms
                     break
 
-    def coordslast(self): #Uncomplete
+    def coordslast(self): #!!!!!! leave later
         with open(self.__father.logname,'r') as f:
             for x in list(reversed(f.readlines())):
                 if x.find('orientation')>=0:
@@ -470,8 +428,8 @@ class gauLOG(object):
             else:
                 print("No Freq found")
                 return ['No Freq found']
-        self.__freq=freq
-        return self.__freq
+        self.freq=freq
+        return self.freq
     def runantecham(self):
         print('Runing antechamber: \n')
         command=gauLOG.antecommand+' -i '+self.__father.logname+' -fi gout -o '+self.__father.acname+' -fo ac'
