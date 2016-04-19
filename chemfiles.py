@@ -1,6 +1,6 @@
 # From fchk read Charge, Multiplicity, Coordinates
 from __future__ import print_function
-import os,time
+import os,time,logging
 import numpy as np
 from io import StringIO
 import rx.molecules as rxmol
@@ -10,17 +10,24 @@ class rxccError(Exception):
         self.value=value
     def __repr__(self):
         return repr(self.value)
-
+def tryfunc(func):
+    def wrapper(*args,**kw):
+        try:
+            func(*args,**kw)
+        except Exception as ex:
+            raise ex
+            return False
+        return True
+    return wrapper
 class File(object):
-
     def __init__(self,name):
         pwd=os.path.abspath('.')
-        self.__name=os.path.join(pwd,name)
-        self.comname=self.__name+'.com'
-        self.logname=self.__name+'.log'
-        self.chkname=self.__name+'.chk'
-        self.fchkname=self.__name+'.fchk'
-        self.acname=self.__name+'.ac'
+        self.name=os.path.join(pwd,name)  # Name with absolute path
+        self.comname=self.name+'.com'
+        self.logname=self.name+'.log'
+        self.chkname=self.name+'.chk'
+        self.fchkname=self.name+'.fchk'
+        self.acname=self.name+'.ac'
         self.__com=gauCOM(self)
         self.__log=gauLOG(self)
         self.__fchk=gauFCHK(self)
@@ -29,11 +36,6 @@ class File(object):
         self.__natoms=None
         self.__mlpty=None
         self.__totalcharge=None
-    # molecule name
-    @property
-    def name(self):
-        return self.__name
-
     # subfile objects
     @property
     def com(self):
@@ -58,7 +60,8 @@ class File(object):
             self.__natoms=value
         else:
             if self.__natoms!=value:
-                raise rxccError("Error: natoms is already read, and not consistent with new value: Now is "+str(self.__natoms)+", New value is "+str(value))
+                raise rxccError("Error: natoms is already read, and not consistent with new value: Current value is "+str(self.__natoms)+", New value is "+str(value))
+
     @property
     def multiplicity(self):
         return self.__mlpty
@@ -68,7 +71,7 @@ class File(object):
             self.__mlpty=value
         else:
             if self.__mlpty!=value:
-                raise rxccError("Error: multiplicity is already read, and not consistent with new value: Now is "+str(self.__mlpty)+", New value is "+str(value))
+                raise rxccError("Error: multiplicity is already read, and not consistent with new value: Current value is "+str(self.__mlpty)+", New value is "+str(value))
     @property
     def totalcharge(self):
         return self.__totalcharge
@@ -78,7 +81,7 @@ class File(object):
             self.__totalcharge=value
         else:
             if self.__totalcharge!=value:
-                raise rxccError("Error: totalcharge is already read, and not consistent with new value: Now is "+str(self.__totalcharge)+", New value is "+str(value))
+                raise rxccError("Error: totalcharge is already read, and not consistent with new value: Current value is "+str(self.__totalcharge)+", New value is "+str(value))
     @property
     def xyzfile(self):
         souc='fchk'
@@ -95,34 +98,9 @@ class File(object):
     def atomchargelist(self):
         return self.__ac.atomchargelist
 
-
-    # fetch data as function
-    def find33Hessian(self,i,j):
-        return self.fchk.find33Hessian(i,j)
-
-
-    # Parse
-    def readfchk(self):
-        if not self.fchk.read():
-            raise rxccError("Error in reading fchk:"+self.fchkname)
-
-    def readac(self):
-        if not self.ac.read():
-            raise rxccError("Error in reading ac:"+self.acname)
-
-    # File operation
-    def rung09(self):
-        state=self.com.rung09()
-
-    def rung09a2(self):
-        state=self.com.rung09a2()
-
-    def isover(self):
-        state=self.com.isover()
-
     def runformchk(self):
         string='formchk '+self.chkname+' '+self.fchkname
-        print('  ',string)
+        logging.info('  '+string)
         iferror=os.popen(string)
         if iferror.read().find('Error')>=0:
             raise rxccError('   Error in formatting'+self.chkname)
@@ -130,10 +108,6 @@ class File(object):
             return False
         iferror.close()
         return True
-    def runantecham(self):
-        self.log.runantecham()
-
-
 
 
 
@@ -149,11 +123,12 @@ class gauFCHK(object):
         self.natoms=None
         self.hessian=[]
         self.xyz=''
+    @tryfunc
     def read(self):
         if self.readstate==True:
-            print("Warning in fchk.read(): already read")
+            logging.warning("fchk.read(): fchk is already read")
             return True
-        print('Read fchk:',self.__father.fchkname)
+        logging.info('Read fchk:'+self.__father.fchkname)
         # FCHK parser
         with open(self.__father.fchkname,'r') as f:
             string=next(f)
@@ -190,7 +165,6 @@ class gauFCHK(object):
         for i in range(0,len(self.atomlist)-1):
             tmp=str(self.atomlist[i+1])+'   '+str(self.coordslist[3*i])+'   '+str(self.coordslist[3*i+1])+'   '+str(self.coordslist[3*i+2])+'\n'
             self.xyz+=tmp
-
         return True
 
     def findHessianElement(self,i,j): #i, j: coordinate number
@@ -221,7 +195,7 @@ class amberAC(object):
         self.__father=father
         self.atomtypelist=[None]
         self.atomchargelist=[None]
-
+    @tryfunc
     def read(self):
         with open(self.__father.acname,'r') as f:
             string=f.readline()
@@ -256,6 +230,7 @@ class gauCOM(object):
 
 
     # Parse
+    @tryfunc
     def read(self):
         with open(self.__father.comname,'r') as f:
             counter=0
@@ -343,7 +318,6 @@ class gauCOM(object):
             tmp=str(self.atomlist[i+1])+'   '+str(self.coordslist[3*i])+'   '+str(self.coordslist[3*i+1])+'   '+str(self.coordslist[3*i+2])+'\n'
             self.xyz+=tmp
 
-
     # File operation
     def rung09(self):
         ifchk=1 # if no chk, add.
@@ -359,7 +333,7 @@ class gauCOM(object):
             with open(self.__father.comname,'w') as f:
                 f.write('%chk='+self.__father.chkname+'\n')
                 f.write(content)
-        print('Run g09 : '+gauCOM.g09rt+' '+self.__father.comname)
+        logging.info('Run g09 : '+gauCOM.g09rt+' '+self.__father.comname)
         os.system(gauCOM.g09rt+' '+self.__father.comname)
     def rung09a2(self):
         ifchk=1 # if no chk, add.
@@ -375,12 +349,12 @@ class gauCOM(object):
             with open(self.__father.comname,'w') as f:
                 f.write('%chk='+self.__father.chkname+'\n')
                 f.write(content)
-        print('Run g09a2 : '+gauCOM.g09a2rt+' '+self.__father.comname)
+        logging.info('Run g09a2 : '+gauCOM.g09a2rt+' '+self.__father.comname)
         os.system(gauCOM.g09a2rt+' '+self.__father.comname)
 
 
     def isover(self):
-        print('Checking g09 termination for',self.__father.comname,'...')
+        logging.info('Checking g09 termination for'+self.__father.comname+'...')
         while True:
             output=''
             if not os.path.isfile(self.__father.logname):
@@ -389,10 +363,10 @@ class gauCOM(object):
                 for x in f.readlines()[:-6:-1]:
                     output+=x
             if output.find('Normal termination')>=0:
-                print('    ..normal termination')
+                logging.info('    ..normal termination')
                 return True
             if output.find('Error termination')>=0:
-                print('Error termination in '+self.__father.comname)
+                logging.critical('Error termination in '+self.__father.comname)
                 return False
             time.sleep(2)
 class gauLOG(object):
@@ -426,14 +400,14 @@ class gauLOG(object):
                 # if (len(freq)>3*self.natoms-5):
                 #     freq=freq[:len(freq)/2]
             else:
-                print("No Freq found")
+                logging.warning("No Freq found")
                 return ['No Freq found']
         self.freq=freq
         return self.freq
     def runantecham(self):
-        print('Runing antechamber: \n')
+        logging.info('Runing antechamber: \n')
         command=gauLOG.antecommand+' -i '+self.__father.logname+' -fi gout -o '+self.__father.acname+' -fo ac'
-        print(command)
+        logging.info(command)
         os.system(command)
 class mmfunction(object):
     magicnum='XXXXXX'

@@ -2,6 +2,7 @@
 from __future__ import print_function
 import numpy as np
 import cclib.parser.utils as cclibutils
+import inspect,logging
 from io import StringIO
 
 class MoleDefError(Exception):
@@ -13,6 +14,7 @@ class MoleDefError(Exception):
 class Molecule(object):
     def __init__(self,moleculename):
         if not isinstance(moleculename,str):
+            logging.error('Error: Molecule name must be str')
             raise MoleDefError('Error: Molecule name must be str')
 
         self.name=moleculename
@@ -181,12 +183,12 @@ class Molecule(object):
         for line in f:
             try: tmp=line.split()
             except:
-                print('End of connectivity, return.')
+                logging.debug('End of connectivity, return.')
                 return
             ite=iter(tmp)
             item0=next(ite)
             if not item0.isdigit():
-                print('End of connectivity, return.')
+                logging.debug('End of connectivity, return.')
                 return
             a=int(item0)
             try:
@@ -243,6 +245,7 @@ class Molecule(object):
             self.adddihd(*tmp)
     def readtypefromlist(self,L):
         if len(L)!=len(self.__atomlist):
+            logging.error("Error when reading atomtype from list: length is not consistent with natoms")
             raise MoleDefError("Error when reading atomtype from list: length is not consistent with natoms")
         ite=iter(L)
         next(ite)
@@ -250,6 +253,7 @@ class Molecule(object):
             atom.atomtype=next(ite)
     def readchargefromlist(self,L):
         if len(L)!=len(self.__atomlist):
+            logging.error("Error when reading atomcharge from list: length is not consistent with natoms")
             raise MoleDefError("Error when reading atomcharge from list: length is not consistent with natoms")
         ite=iter(L)
         next(ite)
@@ -281,39 +285,47 @@ class Atom(object):
     'c2'
     '''
 #    bohr=0.5291772086 # bohr to angstrom
- #   __idtosym={1:'H',5:'B',6:'C',7:'N',8:'O',9:'F',13:'Al',14:'Si',15:'P',16:'S',17:'Cl',26:'Fe',28:'Ni',29:'Cu',30:'Zn'}
-#    __symtoid={v:k for k,v in __idtosym.items()}
     periotable=cclibutils.PeriodicTable()
-    __idtosym=periotable.element
-    __symtoid=periotable.number
+
     def __init__(self,mole,idorsym,coords,unit='bohr'):  # molecule object,int,[float,float,float]
-        assert isinstance(mole,Molecule),"First argument must be a molecule object!. Use molecule.addatom method to avoid this problem."
+        # Assertion
+        callername=inspect.stack()[1][3]
+        assert callername=='addatom',"Atom must be added via Molecule.addatom method"
+        assert isinstance(mole,Molecule),"First argument must be a molecule object!. Use Molecule.addatom method to avoid this problem."
         assert unit!='bohr' or unit!='angstrom', "Coordinate unit must be bohr or angstrom"
+
+
         self.__mymolecule=mole
         if isinstance(idorsym,int):
-            self.__elementid=idorsym
+            self.elementid=idorsym
             try:
-                self.__atomsym=Atom.__idtosym[self.__elementid] #str
+                self.atomsym=Atom.periotable.element[self.elementid] #str
             except KeyError:
-                raise MoleDefError("Error when adding atom: Idtosym not defined for atomic no:"+str(self.__elementid))
+                logging.critical("Error when adding atom: Idtosym not defined for atomic no:"+str(self.elementid))
+                raise MoleDefError("Error when adding atom: Idtosym not defined for atomic no:"+str(self.elementid))
         elif isinstance(idorsym,str):
-            self.__atomsym=idorsym
+            self.atomsym=idorsym
             try:
-                self.__elementid=Atom.__symtoid[self.__atomsym]
+                self.elementid=Atom.periotable.number[self.atomsym]
             except KeyError:
-                raise MoleDefError("Error when adding atom: Idtosym not defined for atomic symbol:"+self.__atomsym)
+                logging.critical("Error when adding atom: Idtosym not defined for atomic symbol:"+self.atomsym)
+                raise MoleDefError("Error when adding atom: Idtosym not defined for atomic symbol:"+self.atomsym)
         else:
-                raise MoleDefError("Error when adding atom: Expected atomic NO(int) or symbol(str) for input, received a"+str(type(idorsym)))
+            logging.critical("Error when adding atom: Expected atomic NO(int) or symbol(str) for input, received a"+str(type(idorsym)))
+            raise MoleDefError("Error when adding atom: Expected atomic NO(int) or symbol(str) for input, received a"+str(type(idorsym)))
+
+
 
         if unit=='bohr':
-            self.__coords=cclibutils.convertor(coords,"bohr","Angstrom")
+            self.coords=cclibutils.convertor(coords,"bohr","Angstrom")
         elif unit=='angstrom':
-            self.__coords=coords
+            self.coords=coords
 
-        self.__atomnum=mole.natoms+1
+        self.atomnum=mole.natoms+1
         self.atomtype=self.name
         self.__neighbor=[]
         self.atomcharge=None
+
     @property
     def neighbor(self):
         return self.__neighbor
@@ -322,39 +334,24 @@ class Atom(object):
             self.__neighbor.append(atomnum)
             self.__neighbor=list(set(self.__neighbor))
         else:
+            logging.error("Error when adding neighbor: atomnum must be an integer.")
             raise MoleDefError("Error when adding neighbor: atomnum must be an integer.")
     def delneighbor(self,atomnum):
         if isinstance(atomnum,int):
             self.__neighbor.remove(atomnum)
         else:
+            logging.error("Error when deleting neighbor: atomnum must be an integer.")
             raise MoleDefError("Error when deleting neighbor: atomnum must be an integer.")
 
     @property
-    def coords(self):
-        return self.__coords
-    @property
     def name(self):
-        return str(self.__atomsym)+str(self.__atomnum)
-    @property
-    def atomnum(self):
-        return self.__atomnum
-    @property
-    def elementid(self):
-        return self.__elementid
-    @property
-    def atomsym(self):
-        return self.__atomsym
+        return str(self.atomsym)+str(self.atomnum)
     @property
     def mymolecule(self):
         return self.__mymolecule
     def __str__(self):
         return "Atom object for atom "+self.name
-    # @mymolecule.setter
-    # def mymolecule(self,value):
-    #     if not isinstance(value,molecule):
-    #         print("Error when changing molecule of,",self.atomsym,self.atomnum,"from",self.molecule,"to",value,": Expected a molecule object, received a",type(value))
-    #         quit()
-    #     self.__molecule=value
+
 
 
 class Bond(object):
@@ -363,8 +360,8 @@ class Bond(object):
             a,b=b,a
         self.__a=mole[a]
         self.__b=mole[b]
-        self.__vec=self.__a.coords-self.__b.coords
-        self.mybondtype=self.__a.name+' '+self.__b.name
+        self.vec=self.__a.coords-self.__b.coords
+        self.mytype=self.__a.name+' '+self.__b.name
         self.__a.addneighbor(b)
         self.parm=0.0
         self.__b.addneighbor(a)
@@ -376,19 +373,11 @@ class Bond(object):
         else:
             raise MoleDefError("Index for bond object must be 1 or 2.")
     @property
-    def vec(self):
-        return self.__vec
-    @property
-    def a(self):
-        return self.__a
-    @property
-    def b(self):
-        return self.__b
-    @property
     def length(self):
-        return np.linalg.norm(self.__vec)
+        return np.linalg.norm(self.vec)
     def __str__(self):
-        return "Bond object of bond "+self.a.name+'-'+self.b.name
+        return "Bond object of bond "+self.__a.name+'-'+self.__b.name
+
 class Angle(object):
     def __init__(self,mole,a,b,c):
         if a>c:
@@ -398,7 +387,7 @@ class Angle(object):
         self.__c=mole[c]
         self.__ab=mole[a].coords-mole[b].coords
         self.__bc=mole[b].coords-mole[c].coords
-        self.myangletype=self.__a.name+' '+self.__b.name+' '+self.__c.name
+        self.mytype=self.__a.name+' '+self.__b.name+' '+self.__c.name
         self.parm=0.0
     def __getitem__(self,value):
         if value==1:
@@ -411,27 +400,18 @@ class Angle(object):
             raise MoleDefError("Index for angle object must be 1, 2 or 3.")
 
     @property
-    def a(self):
-        return self.__a
-    @property
-    def b(self):
-        return self.__b
-    @property
-    def c(self):
-        return self.__c
-    @property
     def anglevalue(self):
         v1u=self.__ab/np.linalg.norm(self.__ab)
         v2u=self.__bc/np.linalg.norm(self.__bc)
-        angle=np.arccos(np.dot(v1u,v2u))*180.0/np.pi
+        angle=180.0-np.arccos(np.dot(v1u,v2u))*180.0/np.pi
         if np.isnan(angle):
             if(v1u==v2u).all():
                 return 0.0
             else:
                 return 180.0
-        return 180-angle
+        return angle
     def __str__(self):
-        return "Angle object of angle "+self.a.name+'-'+self.b.name+'-'+self.c.name
+        return "Angle object of angle "+self.__a.name+'-'+self.__b.name+'-'+self.__c.name
 class Dihd(object):
     def __init__(self,mole,a,b,c,d):
         if b>c:
@@ -445,7 +425,7 @@ class Dihd(object):
         self.__c=mole[c]
         self.__d=mole[d]
         self.parm=0.0
-        self.mydihdtype=self.__a.name+' '+self.__b.name+' '+self.__c.name+' '+self.__d.name
+        self.mytype=self.__a.name+' '+self.__b.name+' '+self.__c.name+' '+self.__d.name
     def __getitem__(self,value):
         if value==1:
             return self.__a
@@ -457,19 +437,6 @@ class Dihd(object):
             return self.__d
         else:
             raise MoleDefError("Index for dihedral object must be 1, 2 ,3 or 4.")
-
-    @property
-    def a(self):
-        return self.__a
-    @property
-    def b(self):
-        return self.__b
-    @property
-    def c(self):
-        return self.__c
-    @property
-    def d(self):
-        return self.__d
 
     @property
     def dihdvalue(self):
@@ -489,43 +456,7 @@ class Dihd(object):
                 return 180.0
         return dihd
     def __str__(self):
-        return "Dihedral object of dihedral "+self.a.name+'-'+self.b.name+'-'+self.c.name+'-'+self.d.name
-class Bondfunc(object):
-    def __init__(self,mole,bondobj):
-        a=bondobj[1].atomtype
-        b=bondobj[2].atomtype
-        if a>b:
-            a,b=b,a
-        self.link=a+' '+b
-
-
-class Anglefunc(object):
-
-    def __init__(self,molecule,angleobj):
-        a=angleobj[1].atomtype
-        b=angleobj[2].atomtype
-        c=angleobj[3].atomtype
-        if a>c:
-            a,c=c,a
-        self.link=a+' '+b+' '+c
-
-class Dihdfunc(object):
-
-    def __init__(self,molecule,dihdobj):
-        a=dihdobj[1].atomtype
-        b=dihdobj[2].atomtype
-        c=dihdobj[3].atomtype
-        d=dihdobj[4].atomtype
-        self.periodicity=2
-        self.phase=180.0
-        self.npaths=1.0
-        if b>c:
-            a,d=d,a
-            b,c=c,b
-        elif b==c:
-            if a>d:
-                a,d=d,a
-        self.link=a+' '+b+' '+c+' '+d
+        return "Dihedral object of dihedral "+self.__a.name+'-'+self.__b.name+'-'+self.__c.name+'-'+self.__d.name
 
 if __name__=='__main__':
     import doctest

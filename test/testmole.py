@@ -75,12 +75,6 @@ class TestMole(unittest.TestCase):
         self.mole[2].atomtype='ho'
         self.mole[3].atomtype='oh'
         self.mole[4].atomtype='ho'
-        self.mole.addbondfunc(self.mole.bond(1,2))
-        self.mole.addbondfunc(self.mole.bond(1,3))
-        self.mole.addbondfunc(self.mole.bond(3,4))
-        self.mole.addanglefunc(self.mole.angle(2,1,3))
-        self.mole.addanglefunc(self.mole.angle(4,3,1))
-        self.mole.adddihdfunc(self.mole.dihd(2,1,3,4))
     # test neighbor
 
     def test_readfile(self):
@@ -96,7 +90,7 @@ class TestMole(unittest.TestCase):
         self.assertEqual(len(benz.bondlist.values()),12)
         self.assertEqual(len(benz.anglelist.values()),18)
         self.assertEqual(len(benz.dihdlist.values()),24)
-        print(benz.angle(1,2,3).anglevalue)
+        self.assertAlmostEqual(benz.angle(1,2,3).anglevalue,120.00,delta=0.1)
         os.system('rm A* q* Q* p* esout *gaussian* samples/bencom.fchk samples/bencom.chk samples/bencom.log')
 
 if __name__=='__main__':

@@ -10,7 +10,7 @@ class TestConnect(unittest.TestCase):
     def test_xyzfile(self):
         benzene=rxmol.Molecule("benzene")
         benfile=rxccfile.File("samples/bencom")
-        benfile.readfchk()
+        benfile.fchk.read()
         xyzfile=benfile.xyzfile
         xyzfile=StringIO(xyzfile)
         benzene.readfromxyz(xyzfile)
