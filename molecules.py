@@ -48,7 +48,7 @@ class Molecule(object):
     def dihdlist(self):
         return self.__dihdlist
     # Add atom and internal coordinates
-    def addatom(self,idorsym,coords,unit='bohr'):
+    def addatom(self,idorsym,coords,unit='angstrom'):
         self.__atomlist.append(Atom(self,idorsym,coords,unit))
 
     def addbond(self,atomnum1,atomnum2):
@@ -284,10 +284,10 @@ class Atom(object):
     >>> mole.atom(1).atomtype
     'c2'
     '''
-#    bohr=0.5291772086 # bohr to angstrom
+
     periotable=cclibutils.PeriodicTable()
 
-    def __init__(self,mole,idorsym,coords,unit='bohr'):  # molecule object,int,[float,float,float]
+    def __init__(self,mole,idorsym,coords,unit='angstrom'):  # molecule object,int,[float,float,float]
         # Assertion
         callername=inspect.stack()[1][3]
         assert callername=='addatom',"Atom must be added via Molecule.addatom method"

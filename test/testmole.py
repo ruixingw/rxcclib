@@ -50,7 +50,7 @@ class TestMole(unittest.TestCase):
         # @property xyz
         np.testing.assert_array_equal(self.mole[1].coords,np.array([0.0,0.0,0.0]))
         np.testing.assert_array_equal(self.mole[2].coords,np.array([0.0,1.0,0.0]))
-        np.testing.assert_array_equal(self.mole[3].coords,np.array([0.0,0.0,0.5291772086]))
+        np.testing.assert_array_equal(self.mole[3].coords,np.array([0.0,0.0,1.0]))
         np.testing.assert_array_equal(self.mole[4].coords,np.array([1.0,0.0,0.0]))
         # @property atomnum
         self.assertEqual(self.mole[1].atomnum,1)
@@ -65,7 +65,7 @@ class TestMole(unittest.TestCase):
         self.assertEqual(str(self.mole.atom(1).mymolecule.name),'H2O2')
     # test_bond(self):
         # Bondlength
-        self.assertEqual(self.mole.bond(1,3).length,0.5291772086)
+        self.assertEqual(self.mole.bond(1,3).length,1.0)
     # test_angle(self):
         self.assertEqual(self.mole.angle(2,1,3).anglevalue,90.0)
     # test dihd

@@ -4,6 +4,7 @@ import os,time,logging
 import numpy as np
 from io import StringIO
 import rx.molecules as rxmol
+import cclib.parser.utils as cclibutils
 
 class rxccError(Exception):
     def __init(self,value):
@@ -23,11 +24,7 @@ class File(object):
     def __init__(self,name):
         pwd=os.path.abspath('.')
         self.name=os.path.join(pwd,name)  # Name with absolute path
-        self.comname=self.name+'.com'
-        self.logname=self.name+'.log'
-        self.chkname=self.name+'.chk'
-        self.fchkname=self.name+'.fchk'
-        self.acname=self.name+'.ac'
+
         self.__com=gauCOM(self)
         self.__log=gauLOG(self)
         self.__fchk=gauFCHK(self)
@@ -37,6 +34,22 @@ class File(object):
         self.__mlpty=None
         self.__totalcharge=None
     # subfile objects
+    @property
+    def comname(self):
+        return self.name+'.com'
+    @property
+    def logname(self):
+        return self.name+'.log'
+    @property
+    def chkname(self):
+        return self.name+'.chk'
+    @property
+    def fchkname(self):
+        return self.name+'.fchk'
+    @property
+    def acname(self):
+        return self.name+'.ac'
+
     @property
     def com(self):
         return self.__com
@@ -159,6 +172,7 @@ class gauFCHK(object):
                         self.hessian.extend([float(x) for x in string.split()])
                         string=next(f)
                 #Stop
+        self.coordslist=[cclibutils.convertor(x,"bohr","Angstrom") for x in self.coordslist]
         self.coordslist=np.array(self.coordslist)
         self.atomlist=np.array(self.atomlist)
         self.hessian=np.array(self.hessian)
@@ -232,6 +246,19 @@ class gauCOM(object):
     # Parse
     @tryfunc
     def read(self):
+        self.xyzfile=''
+        self.atomlist=[None]
+        self.atomtypelist=[None]
+        self.atomchargelist=[None]
+        self.coordslist=[]
+        self.connectivity=''
+        self.nozomudihdfunc=[]
+        self.nozomuanglefunc=[]
+        self.nozomubondfunc=[]
+        self.additionfunc=[]
+        self.nozomuvdw=[]
+        self.xyz=''
+        self.commandline=''
         with open(self.__father.comname,'r') as f:
             counter=0
             ifconnect=False
@@ -367,6 +394,7 @@ class gauCOM(object):
                 return True
             if output.find('Error termination')>=0:
                 logging.critical('Error termination in '+self.__father.comname)
+                raise rxccError('Error termination')
                 return False
             time.sleep(2)
 class gauLOG(object):
@@ -412,12 +440,10 @@ class gauLOG(object):
 class mmfunction(object):
     magicnum='XXXXXX'
     def __init__(self,line):
-        tmp=line.split()
-        fun=[]
+        fun=line.split()
         self.type=None
         self.repr=None
-        for item in tmp:
-            fun.append(item)
+
         def newfloat(value):
             if value=='XXXXXX':
                 return mmfunction.magicnum

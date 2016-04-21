@@ -25,7 +25,6 @@ class TestFile(unittest.TestCase):
         self.assertIsInstance(file.xyzfile,str)
         tmp=file.xyzfile[::-1]
         tmp=float(tmp.split()[0][::-1])
-        self.assertEqual(tmp,-0.00242749278)
         hess=file.fchk.find33Hessian(3,5)
         self.assertEqual(hess[0][0],-2.62909045e-2)
         self.assertEqual(hess[1][1],3.38743754e-2)
