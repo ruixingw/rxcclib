@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rx.molecules as rxmol
 import unittest,os
 
@@ -80,6 +81,7 @@ class TestMole(unittest.TestCase):
     def test_readfile(self):
         benz=rxmol.Molecule("Benzene")
         with open('samples/ben.xyz','r') as f:
+            f=f.read()
             benz.readfromxyz(f)
         self.assertEqual(benz[1].name,'C1')
         self.assertEqual(benz[12].name,'H12')

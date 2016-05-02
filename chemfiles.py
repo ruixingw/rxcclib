@@ -20,6 +20,21 @@ def tryfunc(func):
             return False
         return True
     return wrapper
+class dihdforceconst(object):
+    def __init__(self,value,dihd):
+        self.value=value
+        self.dihd=dihd
+        self.repr=dihd.repr
+    def __repr__(self):
+        return repr(self.value)
+    def __str__(self):
+        return str(self.value)
+    def __call__(self,value):
+        self.value=value
+    @property
+    def forceconst(self):
+        return self.value
+
 class File(object):
     def __init__(self,name):
         pwd=os.path.abspath('.')
@@ -237,11 +252,14 @@ class gauCOM(object):
         self.nozomudihdfunc=[]
         self.nozomuanglefunc=[]
         self.nozomubondfunc=[]
+        self.nozomuimproperfunc=[]
         self.additionfunc=[]
         self.nozomuvdw=[]
         self.xyz=''
         self.commandline=''
-
+    @property
+    def father(self):
+        return self.__father
 
     # Parse
     @tryfunc
@@ -255,10 +273,12 @@ class gauCOM(object):
         self.nozomudihdfunc=[]
         self.nozomuanglefunc=[]
         self.nozomubondfunc=[]
+        self.nozomuimproperfunc=[]
         self.additionfunc=[]
         self.nozomuvdw=[]
         self.xyz=''
         self.commandline=''
+        self.vdwdict={}
         with open(self.__father.comname,'r') as f:
             counter=0
             ifconnect=False
@@ -268,6 +288,7 @@ class gauCOM(object):
                 if line=='\n':
                     counter+=1
                     continue
+                # Read route card region
                 if counter==0:
                     while True:
                         self.commandline+=line
@@ -295,7 +316,7 @@ class gauCOM(object):
                     else:
                         self.atomlist.append(tmp)
                     self.coordslist.extend(line.split()[1:4])
-
+                # Read Molecule specs region
                 if counter==2:
                     self.__father.multiplicity=int(line.split()[1])
                     self.__father.totalcharge=int(line.split()[0])
@@ -305,8 +326,7 @@ class gauCOM(object):
                             counter+=1
                             break
                         molespecs(line)
-                def connect(line):
-                    self.connectivity+=line
+                # Read connectivity
                 if counter==3:
                     if ifconnect:
                         line=next(f)
@@ -314,9 +334,9 @@ class gauCOM(object):
                             if line=='\n':
                                 counter+=1
                                 break
-                            connect(line)
+                            self.connectivity+=line
                             line=next(f)
-
+                # Read MM function region
                 if counter==4:
                     if ifamber:
                         line=next(f)
@@ -335,9 +355,10 @@ class gauCOM(object):
                                 self.additionfunc.append(thisline)
                             elif thisline.type=='vdw':
                                 self.nozomuvdw.append(thisline)
+                                self.vdwdict.update({thisline.atomtype:(thisline.radius,thisline.welldepth)})
+                            elif thisline.type=='improper':
+                                self.nozomuimproperfunc.append(thisline)
                             line=next(f)
-
-
 
 
         self.coordslist=np.array(self.coordslist)
@@ -360,7 +381,7 @@ class gauCOM(object):
             with open(self.__father.comname,'w') as f:
                 f.write('%chk='+self.__father.chkname+'\n')
                 f.write(content)
-        logging.info('Run g09 : '+gauCOM.g09rt+' '+self.__father.comname)
+        logging.debug('Run g09 : '+gauCOM.g09rt+' '+self.__father.comname)
         os.system(gauCOM.g09rt+' '+self.__father.comname)
     def rung09a2(self):
         ifchk=1 # if no chk, add.
@@ -376,12 +397,12 @@ class gauCOM(object):
             with open(self.__father.comname,'w') as f:
                 f.write('%chk='+self.__father.chkname+'\n')
                 f.write(content)
-        logging.info('Run g09a2 : '+gauCOM.g09a2rt+' '+self.__father.comname)
+        logging.debug('Run g09a2 : '+gauCOM.g09a2rt+' '+self.__father.comname)
         os.system(gauCOM.g09a2rt+' '+self.__father.comname)
 
 
     def isover(self):
-        logging.info('Checking g09 termination for'+self.__father.comname+'...')
+        logging.debug('Checking g09 termination for'+self.__father.comname+'...')
         while True:
             output=''
             if not os.path.isfile(self.__father.logname):
@@ -438,7 +459,7 @@ class gauLOG(object):
         logging.info(command)
         os.system(command)
 class mmfunction(object):
-    magicnum='XXXXXX'
+    unknownsign='XXXXXX'
     def __init__(self,line):
         fun=line.split()
         self.type=None
@@ -446,7 +467,7 @@ class mmfunction(object):
 
         def newfloat(value):
             if value=='XXXXXX':
-                return mmfunction.magicnum
+                return mmfunction.unknownsign
             else:
                 return float(value)
         if fun[0]=='AmbTrs':
@@ -455,42 +476,45 @@ class mmfunction(object):
             self.b=fun[2]
             self.c=fun[3]
             self.d=fun[4]
+            self.forceconst=[]
+            self.phase=[]
             self.npaths=float(fun[13])
-            for i,paras in enumerate(fun[9:13]):
-                if newfloat(paras)!=0.000:
-                    i+=1
-                    self.value=newfloat(paras)
-                    break
-            self.periodicity=i
-            self.phase=int(fun[4+self.periodicity])
+            for paras in fun[9:13]:
+                self.forceconst.append(dihdforceconst(newfloat(paras),self))
+            for phase in fun[5:9]:
+                self.phase.append(int(phase))
             self.repr=self.a+' '+self.b+' '+self.c+' '+self.d
         elif fun[0]=='HrmBnd1':
             self.type='angle'
             self.a=fun[1]
             self.b=fun[2]
             self.c=fun[3]
-            self.value=newfloat(fun[4])
+            self.forceconst=newfloat(fun[4])
             self.eqvalue=newfloat(fun[5])
             self.repr=self.a+' '+self.b+' '+self.c
         elif fun[0]=='HrmStr1':
             self.type='bond'
             self.a=fun[1]
             self.b=fun[2]
-            self.value=newfloat(fun[3])
+            self.forceconst=newfloat(fun[3])
             self.eqvalue=newfloat(fun[4])
             self.repr=self.a+' '+self.b
-        # elif fun[0]=='ImpTrs':
-        #     self.type='improper'
-        #     self.a=fun[1]
-        #     self.b=fun[2]
-        #     self.c=fun[3]
-        #     self.d=fun[4]
-        #     self.value=newfloat(fun[5])
-        #     self.eqvalue=newfloat(fun[6])
-        #     self.repr=self.type+self.a+self.b+self.c+self.d
+        elif fun[0]=='ImpTrs':
+            self.type='improper'
+            self.a=fun[1]
+            self.b=fun[2]
+            self.c=fun[3]
+            self.d=fun[4]
+            self.forceconst=newfloat(fun[5])
+            self.phase=newfloat(fun[6])
+            self.npaths=newfloat(fun[7])
+            self.repr=self.a+' '+self.b+' '+self.c+' '+self.d
         elif fun[0]=='VDW':
             self.type='vdw'
             self.content=line
+            self.atomtype=fun[1]
+            self.radius=fun[2]
+            self.welldepth=fun[3]
         else:
             self.type='else'
             self.content=line

@@ -8,8 +8,27 @@ from io import StringIO
 class MoleDefError(Exception):
     def __init__(self,value):
         self.value=value
+
     def __str__(self):
         return repr(self.value)
+
+class dihdforceconst(object):
+    def __init__(self,value,dihd):
+        self.value=value
+        self.dihd=dihd
+        self.repr=dihd.repr
+    def __repr__(self):
+        return repr(self.value)
+    def __str__(self):
+        return str(self.value)
+    def __call__(self,value):
+        self.value=value
+    @property
+    def forceconst(self):
+        return self.value
+    @forceconst.setter
+    def forceconst(self,value):
+        self.value=value
 
 class Molecule(object):
     def __init__(self,moleculename):
@@ -22,19 +41,7 @@ class Molecule(object):
         self.__bondlist={}
         self.__anglelist={}
         self.__dihdlist={}
-        self.__bondfunclist={}
-        self.__anglefunclist={}
-        self.__dihdfunclist={}
-        self.__pointer=0
-    @property
-    def bondfunclist(self):
-        return self.__bondfunclist
-    @property
-    def anglefunclist(self):
-        return self.__anglefunclist
-    @property
-    def dihdfunclist(self):
-        return self.__dihdfunclist
+        self.__improperlist={}
     @property
     def natoms(self):
         return len(self.__atomlist)-1
@@ -47,6 +54,9 @@ class Molecule(object):
     @property
     def dihdlist(self):
         return self.__dihdlist
+    @property
+    def improperlist(self):
+        return self.__improperlist
     # Add atom and internal coordinates
     def addatom(self,idorsym,coords,unit='angstrom'):
         self.__atomlist.append(Atom(self,idorsym,coords,unit))
@@ -54,13 +64,13 @@ class Molecule(object):
     def addbond(self,atomnum1,atomnum2):
         if atomnum1>atomnum2:
             atomnum1,atomnum2=atomnum2,atomnum1
-        self.__bondlist.update({str(atomnum1)+','+str(atomnum2):Bond(self,atomnum1,atomnum2)})
+        self.__bondlist.update({str(atomnum1)+'-'+str(atomnum2):Bond(self,atomnum1,atomnum2)})
 
 
     def addangle(self,atomnum1,atomnum2,atomnum3):
         if atomnum1>atomnum3:
             atomnum1,atomnum3=atomnum3,atomnum1
-        self.__anglelist.update({str(atomnum1)+','+str(atomnum2)+','+str(atomnum3):Angle(self,atomnum1,atomnum2,atomnum3)})
+        self.__anglelist.update({str(atomnum1)+'-'+str(atomnum2)+'-'+str(atomnum3):Angle(self,atomnum1,atomnum2,atomnum3)})
 
     def adddihd(self,atomnum1,atomnum2,atomnum3,atomnum4):
         if atomnum2>atomnum3:
@@ -69,7 +79,9 @@ class Molecule(object):
         elif atomnum2==atomnum3:
             if atomnum1>atomnum4:
                 atomnum1,atomnum4=atomnum4,atomnum1
-        self.__dihdlist.update({str(atomnum1)+','+str(atomnum2)+','+str(atomnum3)+','+str(atomnum4):Dihd(self,atomnum1,atomnum2,atomnum3,atomnum4)})
+        self.__dihdlist.update({str(atomnum1)+'-'+str(atomnum2)+'-'+str(atomnum3)+'-'+str(atomnum4):Dihd(self,atomnum1,atomnum2,atomnum3,atomnum4)})
+    def addimproper(self,atomnum1,atomnum2,atomnum3,atomnum4):
+        self.__improperlist.update({str(atomnum1)+'-'+str(atomnum2)+'-'+str(atomnum3)+'-'+str(atomnum4):Improper(self,atomnum1,atomnum2,atomnum3,atomnum4)})
 
     # Get atom and internal coordiantes
     def atom(self,atomnum):
@@ -78,12 +90,12 @@ class Molecule(object):
     def bond(self,atomnum1,atomnum2):
         if atomnum1>atomnum2:
             atomnum1,atomnum2=atomnum2,atomnum1
-        return self.__bondlist[str(atomnum1)+','+str(atomnum2)]
+        return self.__bondlist[str(atomnum1)+'-'+str(atomnum2)]
 
     def angle(self,atomnum1,atomnum2,atomnum3):
         if atomnum1>atomnum3:
             atomnum1,atomnum3=atomnum3,atomnum1
-        return self.__anglelist[str(atomnum1)+','+str(atomnum2)+','+str(atomnum3)]
+        return self.__anglelist[str(atomnum1)+'-'+str(atomnum2)+'-'+str(atomnum3)]
 
     def dihd(self,atomnum1,atomnum2,atomnum3,atomnum4):
         if atomnum2>atomnum3:
@@ -92,61 +104,10 @@ class Molecule(object):
         elif atomnum2==atomnum3:
             if atomnum1>atomnum4:
                 atomnum1,atomnum4=atomnum4,atomnum1
-        return self.__dihdlist[str(atomnum1)+','+str(atomnum2)+','+str(atomnum3)+','+str(atomnum4)]
+        return self.__dihdlist[str(atomnum1)+'-'+str(atomnum2)+'-'+str(atomnum3)+'-'+str(atomnum4)]
 
-    # Add MM functions
-    def addbondfunc(self,bondobj):
-        atype=bondobj[1].atomtype
-        btype=bondobj[2].atomtype
-        if atype>btype:
-            atype,btype=btype,atype
-        link=atype+' '+btype
-        iffind=False
-        for key,value in self.__bondfunclist.items():
-            if key.link==link:
-                value.append(bondobj)
-                iffind=True
-        if iffind==False:
-            self.__bondfunclist.update({Bondfunc(self,bondobj):[bondobj]})
-        bondobj.bondtype=link
-
-    def addanglefunc(self,angleobj):
-        atype=angleobj[1].atomtype
-        btype=angleobj[2].atomtype
-        ctype=angleobj[3].atomtype
-        if atype>ctype:
-            atype,ctype=ctype,atype
-        link=atype+' '+btype+' '+ctype
-        iffind=False
-        for key,value in self.__anglefunclist.items():
-            if key.link==link:
-                value.append(angleobj)
-                iffind=True
-        if iffind==False:
-            self.__anglefunclist.update({Anglefunc(self,angleobj):[angleobj]})
-        angleobj.angletype=link
-
-    def adddihdfunc(self,dihdobj):
-        atype=dihdobj[1].atomtype
-        btype=dihdobj[2].atomtype
-        ctype=dihdobj[3].atomtype
-        dtype=dihdobj[4].atomtype
-        if btype>ctype:
-            atype,dtype=dtype,atype
-            btype,ctype=ctype,btype
-        elif btype==ctype:
-            if atype>dtype:
-                atype,dtype=dtype,atype
-        link=atype+' '+btype+' '+ctype+' '+dtype
-        iffind=False
-        for key,value in self.__dihdfunclist.items():
-            if key.link==link:
-                value.append(dihdobj)
-                iffind=True
-        if iffind==False:
-            self.__dihdfunclist.update({Dihdfunc(self,dihdobj):[dihdobj]})
-        dihdobj.dihdtype=link
-
+    def improper(self,atomnum1,atomnum2,atomnum3,atomnum4):
+        return self.__improperlist[str(atomnum1)+'-'+str(atomnum2)+'-'+str(atomnum3)+'-'+str(atomnum4)]
 
     # getitem and iteration
     def __getitem__(self,key):
@@ -168,8 +129,8 @@ class Molecule(object):
 
 
     # Read structure from coords
-    def readfromxyz(self,filelikeobj):
-        f=filelikeobj
+    def readfromxyz(self,string):
+        f=StringIO(string)
         for line in f:
             tmp=line.split()
             atom=tmp[0]
@@ -209,25 +170,25 @@ class Molecule(object):
         angles=[]
         dihds=[]
         for atom1 in self:  # atom1: atom obj
-            for atom2 in atom1.neighbor:  # atom2: atomnum
-                if atom2==atom1.atomnum:
+            for atom2 in atom1.neighbor:  # atom2: obj
+                if atom2.atomnum==atom1.atomnum:
                     continue
-                for atom3 in self[atom2].neighbor: #atom3: atomnum
-                    if atom3==atom2 or atom3==atom1.atomnum:
+                for atom3 in atom2.neighbor: #atom3: obj
+                    if atom3.atomnum==atom2.atomnum or atom3.atomnum==atom1.atomnum:
                         continue
                     a=atom1.atomnum
-                    b=atom2
-                    c=atom3
+                    b=atom2.atomnum
+                    c=atom3.atomnum
                     if a>c:
                         a,c=c,a
                     angles.append(str(a)+'-'+str(b)+'-'+str(c))
-                    for atom4 in self[atom3].neighbor:
-                        if atom4==atom3 or atom4==atom2 or atom4==atom1.atomnum:
+                    for atom4 in atom3.neighbor:
+                        if atom4.atomnum==atom3.atomnum or atom4.atomnum==atom2.atomnum or atom4.atomnum==atom1.atomnum:
                             continue
                         a=atom1.atomnum
-                        b=atom2
-                        c=atom3
-                        d=atom4
+                        b=atom2.atomnum
+                        c=atom3.atomnum
+                        d=atom4.atomnum
                         if b>c:
                             b,c=c,b
                             a,d=d,a
@@ -243,6 +204,8 @@ class Molecule(object):
         for item in dihds:
             tmp=[int(x) for x in item.split('-')]
             self.adddihd(*tmp)
+
+
     def readtypefromlist(self,L):
         if len(L)!=len(self.__atomlist):
             logging.error("Error when reading atomtype from list: length is not consistent with natoms")
@@ -329,19 +292,19 @@ class Atom(object):
     @property
     def neighbor(self):
         return self.__neighbor
-    def addneighbor(self,atomnum):
-        if isinstance(atomnum,int):
-            self.__neighbor.append(atomnum)
+    def addneighbor(self,atomobj):
+        if isinstance(atomobj,Atom):
+            self.__neighbor.append(atomobj)
             self.__neighbor=list(set(self.__neighbor))
         else:
-            logging.error("Error when adding neighbor: atomnum must be an integer.")
-            raise MoleDefError("Error when adding neighbor: atomnum must be an integer.")
-    def delneighbor(self,atomnum):
-        if isinstance(atomnum,int):
-            self.__neighbor.remove(atomnum)
+            logging.error("Error when adding neighbor: atomobj must be an integer.")
+            raise MoleDefError("Error when adding neighbor: atomobj must be an integer.")
+    def delneighbor(self,atomobj):
+        if isinstance(atomobj,Atom):
+            self.__neighbor.remove(atomobj)
         else:
-            logging.error("Error when deleting neighbor: atomnum must be an integer.")
-            raise MoleDefError("Error when deleting neighbor: atomnum must be an integer.")
+            logging.error("Error when deleting neighbor: atomobj must be an integer.")
+            raise MoleDefError("Error when deleting neighbor: atomobj must be an integer.")
 
     @property
     def name(self):
@@ -361,10 +324,10 @@ class Bond(object):
         self.__a=mole[a]
         self.__b=mole[b]
         self.vec=self.__a.coords-self.__b.coords
-        self.mytype=self.__a.name+' '+self.__b.name
-        self.__a.addneighbor(b)
-        self.parm=0.0
-        self.__b.addneighbor(a)
+        self.repr=self.__a.name+' '+self.__b.name
+        self.__a.addneighbor(mole[b])
+        self.forceconst=0.0
+        self.__b.addneighbor(mole[a])
     def __getitem__(self,value):
         if value==1:
             return self.__a
@@ -387,8 +350,8 @@ class Angle(object):
         self.__c=mole[c]
         self.__ab=mole[a].coords-mole[b].coords
         self.__bc=mole[b].coords-mole[c].coords
-        self.mytype=self.__a.name+' '+self.__b.name+' '+self.__c.name
-        self.parm=0.0
+        self.repr=self.__a.name+' '+self.__b.name+' '+self.__c.name
+        self.forceconst=0.0
     def __getitem__(self,value):
         if value==1:
             return self.__a
@@ -424,8 +387,11 @@ class Dihd(object):
         self.__b=mole[b]
         self.__c=mole[c]
         self.__d=mole[d]
-        self.parm=0.0
-        self.mytype=self.__a.name+' '+self.__b.name+' '+self.__c.name+' '+self.__d.name
+        self.repr=self.__a.name+' '+self.__b.name+' '+self.__c.name+' '+self.__d.name
+        self.forceconst=[dihdforceconst(0.0,self),dihdforceconst(0.0,self),dihdforceconst(0.0,self),dihdforceconst(0.0,self)]
+        self.phase=[0,0,0,0]
+        self.npaths=1.0
+
     def __getitem__(self,value):
         if value==1:
             return self.__a
@@ -457,6 +423,49 @@ class Dihd(object):
         return dihd
     def __str__(self):
         return "Dihedral object of dihedral "+self.__a.name+'-'+self.__b.name+'-'+self.__c.name+'-'+self.__d.name
+
+
+class Improper(object):
+    def __init__(self,mole,a,b,c,d):
+        self.__a=mole[a]
+        self.__b=mole[b]
+        self.__c=mole[c]
+        self.__d=mole[d]
+        self.forceconst=0.0
+        self.phase=0
+        self.npaths=1.0
+        self.repr=self.__a.name+' '+self.__b.name+' '+self.__c.name+' '+self.__d.name
+    def __getitem__(self,value):
+        if value==1:
+            return self.__a
+        elif value==2:
+            return self.__b
+        elif value==3:
+            return self.__c
+        elif value==4:
+            return self.__d
+        else:
+            raise MoleDefError("Index for improper object must be 1, 2 ,3 or 4.")
+
+    @property
+    def impropervalue(self):
+        v1=self.__a.coords-self.__b.coords
+        v2=self.__b.coords-self.__c.coords
+        v3=self.__c.coords-self.__d.coords
+        v1u=v1/np.linalg.norm(v1)
+        v2u=v1/np.linalg.norm(v2)
+        v3u=v1/np.linalg.norm(v3)
+        n1=np.cross(v1u,v2u)
+        n2=np.cross(v2u,v3u)
+        improper=np.arccos(np.dot(n1,n2))*180.0/np.pi
+        if np.isnan(improper):
+            if (n1==n2).all():
+                return 0.0
+            else:
+                return 180.0
+        return improper
+    def __str__(self):
+        return "Improper object of improper "+self.__a.name+'-'+self.__b.name+'-'+self.__c.name+'-'+self.__d.name
 
 if __name__=='__main__':
     import doctest
