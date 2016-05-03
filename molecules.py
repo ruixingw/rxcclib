@@ -432,8 +432,8 @@ class Improper(object):
         self.__c=mole[c]
         self.__d=mole[d]
         self.forceconst=0.0
-        self.phase=0
-        self.npaths=1.0
+        self.phase=180.0
+        self.npaths=2.0
         self.repr=self.__a.name+' '+self.__b.name+' '+self.__c.name+' '+self.__d.name
     def __getitem__(self,value):
         if value==1:
