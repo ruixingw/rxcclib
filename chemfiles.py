@@ -3,7 +3,7 @@ from __future__ import print_function
 import os,time,logging
 import numpy as np
 from io import StringIO
-import rx.molecules as rxmol
+import rxcclib.molecules as rxmol
 import cclib.parser.utils as cclibutils
 
 class rxccError(Exception):
