@@ -1,6 +1,6 @@
 # From fchk read Charge, Multiplicity, Coordinates
 from __future__ import print_function
-import os,time,logging
+import os,time,logging,shutil
 import numpy as np
 from io import StringIO
 import rxcclib.molecules as rxmol
@@ -369,37 +369,29 @@ class gauCOM(object):
     # File operation
     def rung09(self):
         ifchk=1 # if no chk, add.
-        with open(self.__father.comname,'r') as f:
-            for line in f.readlines():
-                if line.find('%chk')>=0:  # !!!!!! leave later
-                    line='%chk='+self.__father.chkname+'\n'
-                    ifchk=0
-            if ifchk==1:
-                f.seek(0)
-                content=f.read()
-        if ifchk==1:
-            with open(self.__father.comname,'w') as f:
-                f.write('%chk='+self.__father.chkname+'\n')
-                f.write(content)
-        logging.debug('Run g09 : '+gauCOM.g09rt+' '+self.__father.comname)
-        os.system(gauCOM.g09rt+' '+self.__father.comname)
-    def rung09a2(self):
-        ifchk=1 # if no chk, add.
+        content=''
         with open(self.__father.comname,'r') as f:
             for line in f.readlines():
                 if line.find('%chk')>=0:
-                    line='%chk='+self.__father.chkname+'\n'
+                    if line[line.find('=')+1:]!=self.__father.chkname:
+                        oldname=line[line.find('=')+1:].strip('\n')
+                        newname=os.path.split(self.__father.chkname)[1]
+                        shutil.copyfile(oldname,newname)
+                        line='%chk='+newname+'\n'
                     ifchk=0
-            if ifchk==1:
-                f.seek(0)
-                content=f.read()
+                content+=line
         if ifchk==1:
-            with open(self.__father.comname,'w') as f:
-                f.write('%chk='+self.__father.chkname+'\n')
-                f.write(content)
-        logging.debug('Run g09a2 : '+gauCOM.g09a2rt+' '+self.__father.comname)
-        os.system(gauCOM.g09a2rt+' '+self.__father.comname)
+            content='%chk='+os.path.split(self.__father.chkname)[1]+'\n'+content
+        with open(self.__father.comname,'w') as f:
+            f.write(content)
+        logging.debug('Run g09 : '+gauCOM.g09rt+' '+self.__father.comname)
+        os.system(gauCOM.g09rt+' '+self.__father.comname)
 
+    def rung09a2(self):
+        bak=gauCOM.g09rt
+        gauCOM.g09rt=gauCOM.g09a2rt
+        self.rung09()
+        gauCOM.g09rt=bak
 
     def isover(self):
         logging.debug('Checking g09 termination for'+self.__father.comname+'...')

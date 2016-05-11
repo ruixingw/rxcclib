@@ -1,11 +1,13 @@
-import rx.chemfiles as rxccfile
-import rx.molecules as rxmol
+#!/usr/bin/env python3
+import rxcclib.chemfiles as rxccfile
+import rxcclib.molecules as rxmol
 import unittest,os,logging
 from io import StringIO
 
 rxccfile.gauCOM.g09rt='myg09boon'
 rxccfile.gauCOM.g09a2rt='myg09a2boon'
 os.system('rm A* q* Q* p* esout *gaussian* samples/bencom.fchk samples/bencom.chk samples/bencom.log')
+rxccfile.gauCOM.rung09=lambda self,x='myg09boon': rxccfile.gauCOM.rung09(self,x)
 class TestFile(unittest.TestCase):
     def test_comfchk(self):
         file=rxccfile.File('samples/bencom')
