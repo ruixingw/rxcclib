@@ -1,4 +1,4 @@
-%chk=bencom.chk
+%chk=/home/common/ruixingw/PYTHONPATH/rxcclib/test/samples/bencom.chk
 %mem=12gb
 %nproc=6
 #p b3lyp/genecp nosymm geom=connectivity

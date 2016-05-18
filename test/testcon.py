@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import numpy as np
-import rx.molecules as rxmol
-import rx.chemfiles as rxccfile
+import rxcclib.molecules as rxmol
+import rxcclib.chemfiles as rxccfile
 import unittest
 from io import StringIO
 
@@ -12,16 +12,14 @@ class TestConnect(unittest.TestCase):
         benfile=rxccfile.File("samples/bencom")
         benfile.fchk.read()
         xyzfile=benfile.xyzfile
-        xyzfile=StringIO(xyzfile)
         benzene.readfromxyz(xyzfile)
         self.assertEqual(benzene[1].name,'C1')
         self.assertEqual(benzene[12].name,'H12')
     def test_mmfile(self):
         mmfile=rxccfile.File('samples/mmfile')
         mmfile.com.read()
-        xyz=StringIO(mmfile.com.xyz)
         benmol=rxmol.Molecule('benzene')
-        benmol.readfromxyz(xyz)
+        benmol.readfromxyz(mmfile.com.xyz)
         benmol.readtypefromlist(mmfile.com.atomtypelist)
         benmol.readchargefromlist(mmfile.com.atomchargelist)
         for atom in benmol:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import rx.molecules as rxmol
+import rxcclib.molecules as rxmol
 import unittest,os
 
 

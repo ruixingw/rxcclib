@@ -376,12 +376,13 @@ class gauCOM(object):
                     if line[line.find('=')+1:]!=self.__father.chkname:
                         oldname=line[line.find('=')+1:].strip('\n')
                         newname=self.__father.chkname
-                        shutil.copyfile(oldname,newname)
+                        if os.path.isfile(oldname):
+                            shutil.copyfile(oldname,newname)
                         line='%chk='+newname+'\n'
                     ifchk=0
                 content+=line
         if ifchk==1:
-            content='%chk='+os.path.split(self.__father.chkname)[1]+'\n'+content
+            content='%chk='+self.__father.chkname+'\n'+content
         with open(self.__father.comname,'w') as f:
             f.write(content)
         logging.debug('Run g09 : '+gauCOM.g09rt+' '+self.__father.comname)
