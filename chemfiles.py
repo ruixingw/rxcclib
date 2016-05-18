@@ -39,7 +39,7 @@ class File(object):
     def __init__(self,name):
         pwd=os.path.abspath('.')
         self.name=os.path.join(pwd,name)  # Name with absolute path
-
+        self.pwd=os.path.split(self.name)[0]
         self.__com=gauCOM(self)
         self.__log=gauLOG(self)
         self.__fchk=gauFCHK(self)
@@ -375,7 +375,7 @@ class gauCOM(object):
                 if line.find('%chk')>=0:
                     if line[line.find('=')+1:]!=self.__father.chkname:
                         oldname=line[line.find('=')+1:].strip('\n')
-                        newname=os.path.split(self.__father.chkname)[1]
+                        newname=self.__father.chkname
                         shutil.copyfile(oldname,newname)
                         line='%chk='+newname+'\n'
                     ifchk=0
