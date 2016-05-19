@@ -3,14 +3,14 @@
 
 ## What is it?
 
-*rxcclib* is a code package that defines molecules, MM functions, and methods for file parsing.
+*rxcclib* is a code package that defines molecules, MM functions, and methods for file parsing. It is the fundamental library for our other programs such as Parthess, Tsubasa, and Katachi.
 
 ## Dependencies
 
 *rxcclib* requires following packages.
 - [Python3](https://www.python.org/) ([Anaconda](https://www.continuum.io/downloads) is strongly recommended)
 - [numpy](http://www.numpy.org/) (Included in Anaconda)
-- [cclib](https://cclib.github.io/)
+- [cclib](https://cclib.github.io/) (requires manually install)
 
 ## Install
 
