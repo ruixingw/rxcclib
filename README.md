@@ -14,9 +14,11 @@
 
 ## Install
 
-1. Clone the repo
+1. Clone this repository.
+
 ``` git clone https://github.com/ruixingw/rxcclib.git```
 2. 
+
 
     a. Move *rxcclib* directory to your Python install's **site-packages** directory. If you use Anaconda, it is like ```anaconda/lib/python3.5/site-packages```.
 
