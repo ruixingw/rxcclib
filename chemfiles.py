@@ -377,8 +377,11 @@ class gauCOM(object):
                         oldname=line[line.find('=')+1:].strip('\n')
                         newname=self.__father.chkname
                         if os.path.isfile(oldname):
-                            shutil.copyfile(oldname,newname)
-                        line='%chk='+newname+'\n'
+                            try:
+                                shutil.copyfile(oldname,newname)
+                            except shutil.SameFileError:
+                                pass
+                    line='%chk='+newname+'\n'
                     ifchk=0
                 content+=line
         if ifchk==1:
@@ -410,7 +413,7 @@ class gauCOM(object):
                 logging.critical('Error termination in '+self.__father.comname)
                 raise rxccError('Error termination')
                 return False
-            time.sleep(2)
+            time.sleep(0.5)
 class gauLOG(object):
     antecommand='antechamber -c resp'
     def __init__(self,father):
