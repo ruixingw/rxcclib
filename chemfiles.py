@@ -127,7 +127,7 @@ class File(object):
         return self.__ac.atomchargelist
 
     def runformchk(self):
-        string='formchk '+self.chkname+' '+self.fchkname
+        string='formchk -3 '+self.chkname+' '+self.fchkname
         logging.info('  '+string)
         iferror=os.popen(string)
         if iferror.read().find('Error')>=0:
