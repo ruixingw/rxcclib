@@ -1,79 +1,99 @@
 # From fchk read Charge, Multiplicity, Coordinates
 from __future__ import print_function
-import os,time,logging,shutil
+import os
+import time
+import logging
+import shutil
 import numpy as np
-from io import StringIO
-import rxcclib.molecules as rxmol
 import cclib.parser.utils as cclibutils
 
+
 class rxccError(Exception):
-    def __init(self,value):
-        self.value=value
+    def __init(self, value):
+        self.value = value
+
     def __repr__(self):
         return repr(self.value)
+
+
 def tryfunc(func):
-    def wrapper(*args,**kw):
+    def wrapper(*args, **kw):
         try:
-            func(*args,**kw)
+            func(*args, **kw)
         except Exception as ex:
             raise ex
             return False
         return True
+
     return wrapper
+
+
 class dihdforceconst(object):
-    def __init__(self,value,dihd):
-        self.value=value
-        self.dihd=dihd
-        self.repr=dihd.repr
+    def __init__(self, value, dihd):
+        self.value = value
+        self.dihd = dihd
+        self.repr = dihd.repr
+
     def __repr__(self):
         return repr(self.value)
+
     def __str__(self):
         return str(self.value)
-    def __call__(self,value):
-        self.value=value
+
+    def __call__(self, value):
+        self.value = value
+
     @property
     def forceconst(self):
         return self.value
 
+
 class File(object):
-    def __init__(self,name):
-        pwd=os.path.abspath('.')
-        self.name=os.path.join(pwd,name)  # Name with absolute path
-        self.pwd=os.path.split(self.name)[0]
-        self.__com=gauCOM(self)
-        self.__log=gauLOG(self)
-        self.__fchk=gauFCHK(self)
-        self.__ac=amberAC(self)
-        self.default='fchk'
-        self.__natoms=None
-        self.__mlpty=None
-        self.__totalcharge=None
+    def __init__(self, name):
+        pwd = os.path.abspath('.')
+        self.name = os.path.join(pwd, name)  # Name with absolute path
+        self.pwd = os.path.split(self.name)[0]
+        self.__com = gauCOM(self)
+        self.__log = gauLOG(self)
+        self.__fchk = gauFCHK(self)
+        self.__ac = amberAC(self)
+        self.default = 'fchk'
+        self.__natoms = None
+        self.__mlpty = None
+        self.__totalcharge = None
     # subfile objects
     @property
     def comname(self):
-        return self.name+'.com'
+        return self.name + '.com'
+
     @property
     def logname(self):
-        return self.name+'.log'
+        return self.name + '.log'
+
     @property
     def chkname(self):
-        return self.name+'.chk'
+        return self.name + '.chk'
+
     @property
     def fchkname(self):
-        return self.name+'.fchk'
+        return self.name + '.fchk'
+
     @property
     def acname(self):
-        return self.name+'.ac'
+        return self.name + '.ac'
 
     @property
     def com(self):
         return self.__com
+
     @property
     def log(self):
         return self.__log
+
     @property
     def fchk(self):
         return self.__fchk
+
     @property
     def ac(self):
         return self.__ac
@@ -82,181 +102,262 @@ class File(object):
     @property
     def natoms(self):
         return self.__natoms
+
     @natoms.setter
-    def natoms(self,value):
-        if self.__natoms==None:
-            self.__natoms=value
+    def natoms(self, value):
+        if self.__natoms == None:
+            self.__natoms = value
         else:
-            if self.__natoms!=value:
-                raise rxccError("Error: natoms is already read, and not consistent with new value: Current value is "+str(self.__natoms)+", New value is "+str(value))
+            if self.__natoms != value:
+                raise rxccError(
+                    "Error: natoms is already read, and not consistent with new value: Current value is "
+                    + str(self.__natoms) + ", New value is " + str(value))
 
     @property
     def multiplicity(self):
         return self.__mlpty
+
     @multiplicity.setter
-    def multiplicity(self,value):
-        if self.__mlpty==None:
-            self.__mlpty=value
+    def multiplicity(self, value):
+        if self.__mlpty == None:
+            self.__mlpty = value
         else:
-            if self.__mlpty!=value:
-                raise rxccError("Error: multiplicity is already read, and not consistent with new value: Current value is "+str(self.__mlpty)+", New value is "+str(value))
+            if self.__mlpty != value:
+                raise rxccError(
+                    "Error: multiplicity is already read, and not consistent with new value: Current value is "
+                    + str(self.__mlpty) + ", New value is " + str(value))
+
     @property
     def totalcharge(self):
         return self.__totalcharge
+
     @totalcharge.setter
-    def totalcharge(self,value):
-        if self.__totalcharge==None:
-            self.__totalcharge=value
+    def totalcharge(self, value):
+        if self.__totalcharge == None:
+            self.__totalcharge = value
         else:
-            if self.__totalcharge!=value:
-                raise rxccError("Error: totalcharge is already read, and not consistent with new value: Current value is "+str(self.__totalcharge)+", New value is "+str(value))
+            if self.__totalcharge != value:
+                raise rxccError(
+                    "Error: totalcharge is already read, and not consistent with new value: Current value is "
+                    + str(self.__totalcharge) + ", New value is " + str(value))
+
     @property
     def xyzfile(self):
-        souc='fchk'
-        if self.default!='fchk':
-            souc=self.default
-        if souc=='fchk':
+        souc = 'fchk'
+        if self.default != 'fchk':
+            souc = self.default
+        if souc == 'fchk':
             return self.__fchk.xyz
-        elif souc=='com':
+        elif souc == 'com':
             return self.__com.xyz
+
     @property
     def atomtypelist(self):
         return self.__ac.atomtypelist
+
     @property
     def atomchargelist(self):
         return self.__ac.atomchargelist
 
     def runformchk(self):
-        string='formchk -3 '+self.chkname+' '+self.fchkname
-        logging.info('  '+string)
-        iferror=os.popen(string)
-        if iferror.read().find('Error')>=0:
-            raise rxccError('   Error in formatting'+self.chkname)
+        string = 'formchk -3 ' + self.chkname + ' ' + self.fchkname
+        logging.info('  ' + string)
+        iferror = os.popen(string)
+        if iferror.read().find('Error') >= 0:
+            raise rxccError('   Error in formatting' + self.chkname)
             iferror.close()
             return False
         iferror.close()
         return True
 
 
-
 class gauFCHK(object):
-    def __init__(self,father):
-        self.__father=father
-        self.filename=self.__father.fchkname
-        self.coordslist=[]
-        self.atomlist=[None]
-        self.readstate=None
-        self.totalcharge=None
-        self.multiplicity=None
-        self.natoms=None
-        self.hessian=[]
-        self.xyz=''
+    def __init__(self, father):
+        self.__father = father
+        self.filename = self.__father.fchkname
+        self.coordslist = []
+        self.atomlist = [None]
+        self.readstate = None
+        self.totalcharge = None
+        self.multiplicity = None
+        self.natoms = None
+        self.hessian = []
+        self.inthessian = []
+        self.xyz = ''
+
     @tryfunc
     def read(self):
-        if self.readstate==True:
+        if self.readstate == True:
             logging.warning("fchk.read(): fchk is already read")
             return True
-        logging.info('Read fchk:'+self.__father.fchkname)
+        logging.info('Read fchk:' + self.__father.fchkname)
         # FCHK parser
-        with open(self.__father.fchkname,'r') as f:
-            string=next(f)
+        with open(self.__father.fchkname, 'r') as f:
+            string = next(f)
             for string in f:
-                if string.find('Charge')==0:
-                    self.totalcharge=int(string.split('I')[1])
-                    self.__father.totalcharge=self.totalcharge
-                if string.find('Multiplicity')==0:
-                    self.multiplicity=int(string.split('I')[1])
-                    self.__father.multiplicity=self.multiplicity
-                if string.find('Atomic numbers')==0:
-                    self.natoms=int(string.split('=')[1])
-                    self.__father.natoms=self.natoms
-                    string=next(f)
-                    while string.find('Nuclear charges')<0:
+                if string.find('Charge') == 0:
+                    self.totalcharge = int(string.split('I')[1])
+                    self.__father.totalcharge = self.totalcharge
+                if string.find('Multiplicity') == 0:
+                    self.multiplicity = int(string.split('I')[1])
+                    self.__father.multiplicity = self.multiplicity
+                if string.find('Atomic numbers') == 0:
+                    self.natoms = int(string.split('=')[1])
+                    self.__father.natoms = self.natoms
+                    string = next(f)
+                    while string.find('Nuclear charges') < 0:
                         self.atomlist.extend([int(x) for x in string.split()])
-                        string=next(f)
+                        string = next(f)
 
-                if string.find('Current cartesian coordinates')==0:
-                    string=next(f)
-                    while string.find('Force Field')<0:
-                        self.coordslist.extend([float(x) for x in string.split()])
-                        string=next(f)
+                if string.find('Current cartesian coordinates') == 0:
+                    string = next(f)
+                    while True:
+                        try:
+                            self.coordslist.extend(
+                                [float(x) for x in string.split()])
+                        except:
+                            break
+                        string = next(f)
                 # Read Hessian
-                if string.find('Cartesian Force Constants')==0:
-                    string=next(f)
-                    while string.find('Dipole')<0:
-                        self.hessian.extend([float(x) for x in string.split()])
-                        string=next(f)
-                #Stop
-        self.coordslist=[cclibutils.convertor(x,"bohr","Angstrom") for x in self.coordslist]
-        self.coordslist=np.array(self.coordslist)
-        self.atomlist=np.array(self.atomlist)
-        self.hessian=np.array(self.hessian)
-        for i in range(0,len(self.atomlist)-1):
-            tmp=str(self.atomlist[i+1])+'   '+str(self.coordslist[3*i])+'   '+str(self.coordslist[3*i+1])+'   '+str(self.coordslist[3*i+2])+'\n'
-            self.xyz+=tmp
+                if string.find('Cartesian Force Constants') == 0:
+                    string = next(f)
+                    while True:
+                        try:
+                            self.hessian.extend(
+                                [float(x) for x in string.split()])
+                        except:
+                            break
+                        string = next(f)
+                if string.find('Internal Force Constants') == 0:
+                    string = next(f)
+                    while True:
+                        try:
+                            self.inthessian.extend(
+                                [float(x) for x in string.split()])
+                        except:
+                            break
+                        string = next(f)
+            #Stop
+        self.coordslist = [cclibutils.convertor(x, "bohr", "Angstrom")
+                           for x in self.coordslist]
+        self.coordslist = np.array(self.coordslist)
+        self.atomlist = np.array(self.atomlist)
+        self.hessian = np.array(self.hessian)
+        for i in range(0, len(self.atomlist) - 1):
+            tmp = str(self.atomlist[i + 1]) + '   ' + str(self.coordslist[
+                3 * i]) + '   ' + str(self.coordslist[
+                    3 * i + 1]) + '   ' + str(self.coordslist[3 * i +
+                                                              2]) + '\n'
+            self.xyz += tmp
         return True
 
-    def findHessianElement(self,i,j): #i, j: coordinate number
-        if i<j:
-            i,j=j,i
-        num=i*(i-1)/2+j
-        num=int(num)
-        return self.hessian[num-1]
-    def find33Hessian(self,i,j):    #i, j: atom number
-        if i<j:
-            i,j=j,i
-        tthess=[]
-        i1=3*(i-1)+1
-        i2=3*(i-1)+2
-        i3=3*i
-        j1=3*(j-1)+1
-        j2=3*(j-1)+2
-        j3=3*j
-        tthess.append([self.findHessianElement(i1,j1),self.findHessianElement(i1,j2),self.findHessianElement(i1,j3)])
-        tthess.append([self.findHessianElement(i2,j1),self.findHessianElement(i2,j2),self.findHessianElement(i2,j3)])
-        tthess.append([self.findHessianElement(i3,j1),self.findHessianElement(i3,j2),self.findHessianElement(i3,j3)])
-        tthess=np.array(tthess)
+    def findHessianElement(self, i, j):  #i, j: coordinate number
+        if i < j:
+            i, j = j, i
+        num = i * (i - 1) / 2 + j
+        num = int(num)
+        return self.hessian[num - 1]
+
+    def find33Hessian(self, i, j):  #i, j: atom number
+        if i < j:
+            i, j = j, i
+        tthess = []
+        i1 = 3 * (i - 1) + 1
+        i2 = 3 * (i - 1) + 2
+        i3 = 3 * i
+        j1 = 3 * (j - 1) + 1
+        j2 = 3 * (j - 1) + 2
+        j3 = 3 * j
+        tthess.append([self.findHessianElement(
+            i1, j1), self.findHessianElement(i1, j2), self.findHessianElement(
+                i1, j3)])
+        tthess.append([self.findHessianElement(
+            i2, j1), self.findHessianElement(i2, j2), self.findHessianElement(
+                i2, j3)])
+        tthess.append([self.findHessianElement(
+            i3, j1), self.findHessianElement(i3, j2), self.findHessianElement(
+                i3, j3)])
+        tthess = np.array(tthess)
         return tthess
 
-class amberAC(object):
+    def findHessianElement(self, i, j):  #i, j: coordinate number
+        if i < j:
+            i, j = j, i
+        num = i * (i - 1) / 2 + j
+        num = int(num)
+        return self.hessian[num - 1]
 
-    def __init__(self,father):
-        self.__father=father
-        self.atomtypelist=[None]
-        self.atomchargelist=[None]
+    def find33Hessian(self, i, j):  #i, j: atom number
+        if i < j:
+            i, j = j, i
+        tthess = []
+        i1 = 3 * (i - 1) + 1
+        i2 = 3 * (i - 1) + 2
+        i3 = 3 * i
+        j1 = 3 * (j - 1) + 1
+        j2 = 3 * (j - 1) + 2
+        j3 = 3 * j
+        tthess.append([self.findHessianElement(
+            i1, j1), self.findHessianElement(i1, j2), self.findHessianElement(
+                i1, j3)])
+        tthess.append([self.findHessianElement(
+            i2, j1), self.findHessianElement(i2, j2), self.findHessianElement(
+                i2, j3)])
+        tthess.append([self.findHessianElement(
+            i3, j1), self.findHessianElement(i3, j2), self.findHessianElement(
+                i3, j3)])
+        tthess = np.array(tthess)
+        return tthess
+
+    def findintHessianElement(self, i, j):  #i, j: coordinate number
+        if i < j:
+            i, j = j, i
+        num = i * (i - 1) / 2 + j
+        num = int(num)
+        return self.inthessian[num - 1]
+
+
+class amberAC(object):
+    def __init__(self, father):
+        self.__father = father
+        self.atomtypelist = [None]
+        self.atomchargelist = [None]
+
     @tryfunc
     def read(self):
-        with open(self.__father.acname,'r') as f:
-            string=f.readline()
-            string=f.readline()
+        with open(self.__father.acname, 'r') as f:
+            string = f.readline()
+            string = f.readline()
             for string in f.readlines():
-                if string.find('BOND')>=0:
+                if string.find('BOND') >= 0:
                     break
-                ac=string.split()
-                self.atomtypelist.append(ac[len(ac)-1])
-                self.atomchargelist.append(float(ac[len(ac)-2]))
+                ac = string.split()
+                self.atomtypelist.append(ac[len(ac) - 1])
+                self.atomchargelist.append(float(ac[len(ac) - 2]))
         return True
 
 
 class gauCOM(object):
-    g09rt='g09'
-    g09a2rt='g09'
-    def __init__(self,father):
-        self.__father=father
-        self.xyzfile=''
-        self.atomlist=[None]
-        self.atomtypelist=[None]
-        self.atomchargelist=[None]
-        self.coordslist=[]
-        self.connectivity=''
-        self.nozomudihdfunc=[]
-        self.nozomuanglefunc=[]
-        self.nozomubondfunc=[]
-        self.nozomuimproperfunc=[]
-        self.additionfunc=[]
-        self.nozomuvdw=[]
-        self.xyz=''
-        self.commandline=''
+    g09rt = 'g09'
+    g09a2rt = 'g09'
+
+    def __init__(self, father):
+        self.__father = father
+        self.xyzfile = ''
+        self.atomlist = [None]
+        self.atomtypelist = [None]
+        self.atomchargelist = [None]
+        self.coordslist = []
+        self.connectivity = ''
+        self.nozomudihdfunc = []
+        self.nozomuanglefunc = []
+        self.nozomubondfunc = []
+        self.nozomuimproperfunc = []
+        self.additionfunc = []
+        self.nozomuvdw = []
+        self.xyz = ''
+        self.commandline = ''
+
     @property
     def father(self):
         return self.__father
@@ -264,253 +365,270 @@ class gauCOM(object):
     # Parse
     @tryfunc
     def read(self):
-        self.xyzfile=''
-        self.atomlist=[None]
-        self.atomtypelist=[None]
-        self.atomchargelist=[None]
-        self.coordslist=[]
-        self.connectivity=''
-        self.nozomudihdfunc=[]
-        self.nozomuanglefunc=[]
-        self.nozomubondfunc=[]
-        self.nozomuimproperfunc=[]
-        self.additionfunc=[]
-        self.nozomuvdw=[]
-        self.xyz=''
-        self.commandline=''
-        self.vdwdict={}
-        with open(self.__father.comname,'r') as f:
-            counter=0
-            ifconnect=False
-            ifamber=False
-            line=''
+        self.xyzfile = ''
+        self.atomlist = [None]
+        self.atomtypelist = [None]
+        self.atomchargelist = [None]
+        self.coordslist = []
+        self.connectivity = ''
+        self.nozomudihdfunc = []
+        self.nozomuanglefunc = []
+        self.nozomubondfunc = []
+        self.nozomuimproperfunc = []
+        self.additionfunc = []
+        self.nozomuvdw = []
+        self.xyz = ''
+        self.commandline = ''
+        self.vdwdict = {}
+        with open(self.__father.comname, 'r') as f:
+            counter = 0
+            ifconnect = False
+            ifamber = False
+            line = ''
             for line in f:
-                if line=='\n':
-                    counter+=1
+                if line == '\n':
+                    counter += 1
                     continue
                 # Read route card region
-                if counter==0:
+                if counter == 0:
                     while True:
-                        self.commandline+=line
-                        line=next(f)
-                        if line=='\n':
-                            counter+=1
+                        self.commandline += line
+                        line = next(f)
+                        if line == '\n':
+                            counter += 1
                             break
-                    if self.commandline.find('connectivity')>=0:
-                        ifconnect=True
-                    if self.commandline.find('amber')>=0:
-                        ifamber=True
+                    if self.commandline.find('connectivity') >= 0:
+                        ifconnect = True
+                    if self.commandline.find('amber') >= 0:
+                        ifamber = True
+
                 def molespecs(line):
-                    self.xyzfile+=line
-                    tmp=line.split()[0]
-                    if tmp.find('-')>=0:
+                    self.xyzfile += line
+                    tmp = line.split()[0]
+                    if tmp.find('-') >= 0:
                         self.atomlist.append(tmp.split('-')[0])
-                        if tmp.count('-')==2:
-                            tmp=tmp.split('-')
+                        if tmp.count('-') == 2:
+                            tmp = tmp.split('-')
                             self.atomtypelist.append(tmp[1])
                             self.atomchargelist.append(tmp[2])
-                        elif tmp.count('-')==3:
-                            tmp=tmp.split('-')
+                        elif tmp.count('-') == 3:
+                            tmp = tmp.split('-')
                             self.atomtypelist.append(tmp[1])
                             self.atomchargelist.append(-float(tmp[3]))
                     else:
                         self.atomlist.append(tmp)
                     self.coordslist.extend(line.split()[1:4])
                 # Read Molecule specs region
-                if counter==2:
-                    self.__father.multiplicity=int(line.split()[1])
-                    self.__father.totalcharge=int(line.split()[0])
-                    while counter==2:
-                        line=next(f)
-                        if line=='\n':
-                            counter+=1
+                if counter == 2:
+                    self.__father.multiplicity = int(line.split()[1])
+                    self.__father.totalcharge = int(line.split()[0])
+                    while counter == 2:
+                        line = next(f)
+                        if line == '\n':
+                            counter += 1
                             break
                         molespecs(line)
                 # Read connectivity
-                if counter==3:
+                if counter == 3:
                     if ifconnect:
-                        line=next(f)
-                        while counter==3:
-                            if line=='\n':
-                                counter+=1
+                        line = next(f)
+                        while counter == 3:
+                            if line == '\n':
+                                counter += 1
                                 break
-                            self.connectivity+=line
-                            line=next(f)
+                            self.connectivity += line
+                            line = next(f)
                 # Read MM function region
-                if counter==4:
+                if counter == 4:
                     if ifamber:
-                        line=next(f)
-                        while counter==4:
-                            if line=='\n':
-                                counter+=1
+                        line = next(f)
+                        while counter == 4:
+                            if line == '\n':
+                                counter += 1
                                 break
-                            thisline=mmfunction(line)
-                            if thisline.type=='dihd':
+                            thisline = mmfunction(line)
+                            if thisline.type == 'dihd':
                                 self.nozomudihdfunc.append(thisline)
-                            elif thisline.type=='angle':
+                            elif thisline.type == 'angle':
                                 self.nozomuanglefunc.append(thisline)
-                            elif thisline.type=='bond':
+                            elif thisline.type == 'bond':
                                 self.nozomubondfunc.append(thisline)
-                            elif thisline.type=='else':
+                            elif thisline.type == 'else':
                                 self.additionfunc.append(thisline)
-                            elif thisline.type=='vdw':
+                            elif thisline.type == 'vdw':
                                 self.nozomuvdw.append(thisline)
-                                self.vdwdict.update({thisline.atomtype:(thisline.radius,thisline.welldepth)})
-                            elif thisline.type=='improper':
+                                self.vdwdict.update({thisline.atomtype: (
+                                    thisline.radius, thisline.welldepth)})
+                            elif thisline.type == 'improper':
                                 self.nozomuimproperfunc.append(thisline)
-                            line=next(f)
+                            line = next(f)
 
-
-        self.coordslist=np.array(self.coordslist)
-        for i in range(0,len(self.atomlist)-1):
-            tmp=str(self.atomlist[i+1])+'   '+str(self.coordslist[3*i])+'   '+str(self.coordslist[3*i+1])+'   '+str(self.coordslist[3*i+2])+'\n'
-            self.xyz+=tmp
+        self.coordslist = np.array(self.coordslist)
+        for i in range(0, len(self.atomlist) - 1):
+            tmp = str(self.atomlist[i + 1]) + '   ' + str(self.coordslist[
+                3 * i]) + '   ' + str(self.coordslist[
+                    3 * i + 1]) + '   ' + str(self.coordslist[3 * i +
+                                                              2]) + '\n'
+            self.xyz += tmp
 
     # File operation
     def rung09(self):
-        ifchk=1 # if no chk, add.
-        content=''
-        with open(self.__father.comname,'r') as f:
+        ifchk = 1  # if no chk, add.
+        content = ''
+        with open(self.__father.comname, 'r') as f:
             for line in f.readlines():
-                if line.find('%chk')>=0:
-                    if line[line.find('=')+1:]!=self.__father.chkname:
-                        oldname=line[line.find('=')+1:].strip('\n')
-                        newname=self.__father.chkname
+                if line.find('%chk') >= 0:
+                    if line[line.find('=') + 1:] != self.__father.chkname:
+                        oldname = line[line.find('=') + 1:].strip('\n')
+                        newname = self.__father.chkname
                         if os.path.isfile(oldname):
                             try:
-                                shutil.copyfile(oldname,newname)
+                                shutil.copyfile(oldname, newname)
                             except shutil.SameFileError:
                                 pass
-                    line='%chk='+newname+'\n'
-                    ifchk=0
-                content+=line
-        if ifchk==1:
-            content='%chk='+self.__father.chkname+'\n'+content
-        with open(self.__father.comname,'w') as f:
+                    line = '%chk=' + newname + '\n'
+                    ifchk = 0
+                content += line
+        if ifchk == 1:
+            content = '%chk=' + self.__father.chkname + '\n' + content
+        with open(self.__father.comname, 'w') as f:
             f.write(content)
-        logging.debug('Run g09 : '+gauCOM.g09rt+' '+self.__father.comname)
-        os.system(gauCOM.g09rt+' '+self.__father.comname)
+        logging.debug('Run g09 : ' + gauCOM.g09rt + ' ' +
+                      self.__father.comname)
+        os.system(gauCOM.g09rt + ' ' + self.__father.comname)
 
     def rung09a2(self):
-        bak=gauCOM.g09rt
-        gauCOM.g09rt=gauCOM.g09a2rt
+        bak = gauCOM.g09rt
+        gauCOM.g09rt = gauCOM.g09a2rt
         self.rung09()
-        gauCOM.g09rt=bak
+        gauCOM.g09rt = bak
 
     def isover(self):
-        logging.debug('Checking g09 termination for'+self.__father.comname+'...')
+        logging.debug('Checking g09 termination for' + self.__father.comname +
+                      '...')
         while True:
-            output=''
+            output = ''
             if not os.path.isfile(self.__father.logname):
                 continue
-            with open(self.__father.logname,'r') as f:
+            with open(self.__father.logname, 'r') as f:
                 for x in f.readlines()[:-6:-1]:
-                    output+=x
-            if output.find('Normal termination')>=0:
+                    output += x
+            if output.find('Normal termination') >= 0:
                 logging.info('    ..normal termination')
                 return True
-            if output.find('Error termination')>=0:
-                logging.critical('Error termination in '+self.__father.comname)
+            if output.find('Error termination') >= 0:
+                logging.critical('Error termination in ' +
+                                 self.__father.comname)
                 raise rxccError('Error termination')
                 return False
             time.sleep(0.5)
+
+
 class gauLOG(object):
-    antecommand='antechamber -c resp'
-    def __init__(self,father):
-        self.__father=father
-        self.freq=0
+    antecommand = 'antechamber -c resp'
+
+    def __init__(self, father):
+        self.__father = father
+        self.freq = 0
+
     def getnatoms(self):
-        with open(self.__father.logname,'r') as f:
+        with open(self.__father.logname, 'r') as f:
             for x in f.readlines():
-                if x.find('NAtoms')>=0:
-                    self.natoms=int(x.split()[1])
+                if x.find('NAtoms') >= 0:
+                    self.natoms = int(x.split()[1])
                     return self.natoms
                     break
 
-    def coordslast(self): #!!!!!! leave later
-        with open(self.__father.logname,'r') as f:
+    def coordslast(self):  #!!!!!! leave later
+        with open(self.__father.logname, 'r') as f:
             for x in list(reversed(f.readlines())):
-                if x.find('orientation')>=0:
-                    self.orn=x
+                if x.find('orientation') >= 0:
+                    self.orn = x
                     break
         return self.orn
+
     def getfreq(self):
-        freq=[]
-        with open(self.__father.logname,'r') as f:
+        freq = []
+        with open(self.__father.logname, 'r') as f:
             for line in f.readlines():
-                if line.find('Frequencies -- ')>=0:
+                if line.find('Frequencies -- ') >= 0:
                     freq.extend(line.split()[2:])
-            if freq!=[]:
-                freq=list(map(float,freq))
+            if freq != []:
+                freq = list(map(float, freq))
                 # if (len(freq)>3*self.natoms-5):
                 #     freq=freq[:len(freq)/2]
             else:
                 logging.warning("No Freq found")
                 return ['No Freq found']
-        self.freq=freq
+        self.freq = freq
         return self.freq
+
     def runantecham(self):
         logging.info('Runing antechamber: \n')
-        command=gauLOG.antecommand+' -i '+self.__father.logname+' -fi gout -o '+self.__father.acname+' -fo ac'
+        command = gauLOG.antecommand + ' -i ' + self.__father.logname + ' -fi gout -o ' + self.__father.acname + ' -fo ac'
         logging.info(command)
         os.system(command)
+
+
 class mmfunction(object):
-    unknownsign='XXXXXX'
-    def __init__(self,line):
-        fun=line.split()
-        self.type=None
-        self.repr=None
+    unknownsign = 'XXXXXX'
+
+    def __init__(self, line):
+        fun = line.split()
+        self.type = None
+        self.repr = None
 
         def newfloat(value):
-            if value=='XXXXXX':
+            if value == 'XXXXXX':
                 return mmfunction.unknownsign
             else:
                 return float(value)
-        if fun[0]=='AmbTrs':
-            self.type='dihd'
-            self.a=fun[1]
-            self.b=fun[2]
-            self.c=fun[3]
-            self.d=fun[4]
-            self.forceconst=[]
-            self.phase=[]
-            self.npaths=float(fun[13])
+
+        if fun[0] == 'AmbTrs':
+            self.type = 'dihd'
+            self.a = fun[1]
+            self.b = fun[2]
+            self.c = fun[3]
+            self.d = fun[4]
+            self.forceconst = []
+            self.phase = []
+            self.npaths = float(fun[13])
             for paras in fun[9:13]:
-                self.forceconst.append(dihdforceconst(newfloat(paras),self))
+                self.forceconst.append(dihdforceconst(newfloat(paras), self))
             for phase in fun[5:9]:
                 self.phase.append(int(phase))
-            self.repr=self.a+' '+self.b+' '+self.c+' '+self.d
-        elif fun[0]=='HrmBnd1':
-            self.type='angle'
-            self.a=fun[1]
-            self.b=fun[2]
-            self.c=fun[3]
-            self.forceconst=newfloat(fun[4])
-            self.eqvalue=newfloat(fun[5])
-            self.repr=self.a+' '+self.b+' '+self.c
-        elif fun[0]=='HrmStr1':
-            self.type='bond'
-            self.a=fun[1]
-            self.b=fun[2]
-            self.forceconst=newfloat(fun[3])
-            self.eqvalue=newfloat(fun[4])
-            self.repr=self.a+' '+self.b
-        elif fun[0]=='ImpTrs':
-            self.type='improper'
-            self.a=fun[1]
-            self.b=fun[2]
-            self.c=fun[3]
-            self.d=fun[4]
-            self.forceconst=newfloat(fun[5])
-            self.phase=newfloat(fun[6])
-            self.npaths=newfloat(fun[7])
-            self.repr=self.a+' '+self.b+' '+self.c+' '+self.d
-        elif fun[0]=='VDW':
-            self.type='vdw'
-            self.content=line
-            self.atomtype=fun[1]
-            self.radius=fun[2]
-            self.welldepth=fun[3]
+            self.repr = self.a + ' ' + self.b + ' ' + self.c + ' ' + self.d
+        elif fun[0] == 'HrmBnd1':
+            self.type = 'angle'
+            self.a = fun[1]
+            self.b = fun[2]
+            self.c = fun[3]
+            self.forceconst = newfloat(fun[4])
+            self.eqvalue = newfloat(fun[5])
+            self.repr = self.a + ' ' + self.b + ' ' + self.c
+        elif fun[0] == 'HrmStr1':
+            self.type = 'bond'
+            self.a = fun[1]
+            self.b = fun[2]
+            self.forceconst = newfloat(fun[3])
+            self.eqvalue = newfloat(fun[4])
+            self.repr = self.a + ' ' + self.b
+        elif fun[0] == 'ImpTrs':
+            self.type = 'improper'
+            self.a = fun[1]
+            self.b = fun[2]
+            self.c = fun[3]
+            self.d = fun[4]
+            self.forceconst = newfloat(fun[5])
+            self.phase = newfloat(fun[6])
+            self.npaths = newfloat(fun[7])
+            self.repr = self.a + ' ' + self.b + ' ' + self.c + ' ' + self.d
+        elif fun[0] == 'VDW':
+            self.type = 'vdw'
+            self.content = line
+            self.atomtype = fun[1]
+            self.radius = fun[2]
+            self.welldepth = fun[3]
         else:
-            self.type='else'
-            self.content=line
+            self.type = 'else'
+            self.content = line
