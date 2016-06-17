@@ -549,10 +549,15 @@ class gauLOG(object):
 
     def getfreq(self):
         freq = []
+        p=False
         with open(self.__father.logname, 'r') as f:
             for line in f.readlines():
                 if line.find('Frequencies -- ') >= 0:
                     freq.extend(line.split()[2:])
+                if line.find('#P') >= 0:
+                    if p == False:
+                        freq = []
+                        p = True
             if freq != []:
                 freq = list(map(float, freq))
                 # if (len(freq)>3*self.natoms-5):
