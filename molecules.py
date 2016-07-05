@@ -77,15 +77,15 @@ class Molecule(object):
     def addbond(self, atomnum1, atomnum2):
         if atomnum1 > atomnum2:
             atomnum1, atomnum2 = atomnum2, atomnum1
-        self.__bondlist.update({str(atomnum1) + '-' + str(atomnum2): Bond(
-            self, atomnum1, atomnum2)})
+        self.__bondlist.update({str(atomnum1) + '-' + str(atomnum2):
+                                Bond(self, atomnum1, atomnum2)})
 
     def addangle(self, atomnum1, atomnum2, atomnum3):
         if atomnum1 > atomnum3:
             atomnum1, atomnum3 = atomnum3, atomnum1
         self.__anglelist.update(
-            {str(atomnum1) + '-' + str(atomnum2) + '-' + str(atomnum3): Angle(
-                self, atomnum1, atomnum2, atomnum3)})
+            {str(atomnum1) + '-' + str(atomnum2) + '-' + str(atomnum3):
+             Angle(self, atomnum1, atomnum2, atomnum3)})
 
     def adddihd(self, atomnum1, atomnum2, atomnum3, atomnum4):
         if atomnum2 > atomnum3:
@@ -100,10 +100,10 @@ class Molecule(object):
         })
 
     def addimproper(self, atomnum1, atomnum2, atomnum3, atomnum4):
-        self.__improperlist.update(
-            {str(atomnum1) + '-' + str(atomnum2) + '-' + str(atomnum3) + '-' +
-             str(atomnum4): Improper(self, atomnum1, atomnum2, atomnum3,
-                                     atomnum4)})
+        self.__improperlist.update({str(atomnum1) + '-' + str(atomnum2) + '-' +
+                                    str(atomnum3) + '-' + str(atomnum4):
+                                    Improper(self, atomnum1, atomnum2,
+                                             atomnum3, atomnum4)})
 
     # Get atom and internal coordiantes
     def atom(self, atomnum):

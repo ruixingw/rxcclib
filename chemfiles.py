@@ -268,15 +268,15 @@ class gauFCHK(object):
         j1 = 3 * (j - 1) + 1
         j2 = 3 * (j - 1) + 2
         j3 = 3 * j
-        tthess.append([self.findHessianElement(
-            i1, j1), self.findHessianElement(i1, j2), self.findHessianElement(
-                i1, j3)])
-        tthess.append([self.findHessianElement(
-            i2, j1), self.findHessianElement(i2, j2), self.findHessianElement(
-                i2, j3)])
-        tthess.append([self.findHessianElement(
-            i3, j1), self.findHessianElement(i3, j2), self.findHessianElement(
-                i3, j3)])
+        tthess.append([self.findHessianElement(i1, j1),
+                       self.findHessianElement(i1, j2),
+                       self.findHessianElement(i1, j3)])
+        tthess.append([self.findHessianElement(i2, j1),
+                       self.findHessianElement(i2, j2),
+                       self.findHessianElement(i2, j3)])
+        tthess.append([self.findHessianElement(i3, j1),
+                       self.findHessianElement(i3, j2),
+                       self.findHessianElement(i3, j3)])
         tthess = np.array(tthess)
         return tthess
 
@@ -297,15 +297,15 @@ class gauFCHK(object):
         j1 = 3 * (j - 1) + 1
         j2 = 3 * (j - 1) + 2
         j3 = 3 * j
-        tthess.append([self.findHessianElement(
-            i1, j1), self.findHessianElement(i1, j2), self.findHessianElement(
-                i1, j3)])
-        tthess.append([self.findHessianElement(
-            i2, j1), self.findHessianElement(i2, j2), self.findHessianElement(
-                i2, j3)])
-        tthess.append([self.findHessianElement(
-            i3, j1), self.findHessianElement(i3, j2), self.findHessianElement(
-                i3, j3)])
+        tthess.append([self.findHessianElement(i1, j1),
+                       self.findHessianElement(i1, j2),
+                       self.findHessianElement(i1, j3)])
+        tthess.append([self.findHessianElement(i2, j1),
+                       self.findHessianElement(i2, j2),
+                       self.findHessianElement(i2, j3)])
+        tthess.append([self.findHessianElement(i3, j1),
+                       self.findHessianElement(i3, j2),
+                       self.findHessianElement(i3, j3)])
         tthess = np.array(tthess)
         return tthess
 
@@ -549,7 +549,7 @@ class gauLOG(object):
 
     def getfreq(self):
         freq = []
-        p=False
+        p = False
         with open(self.__father.logname, 'r') as f:
             for line in f.readlines():
                 if line.find('Frequencies -- ') >= 0:

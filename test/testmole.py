@@ -48,14 +48,14 @@ class TestMole(unittest.TestCase):
 
     def test_mole(self):
         # @property xyz
-        np.testing.assert_array_equal(self.mole[1].coords, np.array(
-            [0.0, 0.0, 0.0]))
-        np.testing.assert_array_equal(self.mole[2].coords, np.array(
-            [0.0, 1.0, 0.0]))
-        np.testing.assert_array_equal(self.mole[3].coords, np.array(
-            [0.0, 0.0, 1.0]))
-        np.testing.assert_array_equal(self.mole[4].coords, np.array(
-            [1.0, 0.0, 0.0]))
+        np.testing.assert_array_equal(self.mole[1].coords,
+                                      np.array([0.0, 0.0, 0.0]))
+        np.testing.assert_array_equal(self.mole[2].coords,
+                                      np.array([0.0, 1.0, 0.0]))
+        np.testing.assert_array_equal(self.mole[3].coords,
+                                      np.array([0.0, 0.0, 1.0]))
+        np.testing.assert_array_equal(self.mole[4].coords,
+                                      np.array([1.0, 0.0, 0.0]))
         # @property atomnum
         self.assertEqual(self.mole[1].atomnum, 1)
         # @property elementid
