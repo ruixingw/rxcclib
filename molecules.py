@@ -1,7 +1,7 @@
 # Molecules, atoms definition
 from __future__ import print_function
 import numpy as np
-import cclib.parser.utils as cclibutils
+import rxcclib.cclibutils as cclibutils
 import inspect, logging
 from io import StringIO
 
