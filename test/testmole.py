@@ -32,16 +32,18 @@ class TestMole(unittest.TestCase):
         self.assertEqual(self.mole.atom(1).elementid, 8)
         # def __iter__
         ite = iter(self.mole)
+        for atom in self.mole:
+            print(atom.name)
         # def __next__
         self.assertEqual(next(ite).name, 'O1')
-        self.assertEqual(next(ite).name, 'H2')
+        self.assertEqual(next(ite).name, 'H1')
         ite2 = iter(self.mole)
         self.assertEqual(next(ite2).name, 'O1')
+        self.assertEqual(next(ite2).name, 'H1')
+        self.assertEqual(next(ite).name, 'O2')
+        self.assertEqual(next(ite).name, 'H2')
+        self.assertEqual(next(ite2).name, 'O2')
         self.assertEqual(next(ite2).name, 'H2')
-        self.assertEqual(next(ite).name, 'O3')
-        self.assertEqual(next(ite).name, 'H4')
-        self.assertEqual(next(ite2).name, 'O3')
-        self.assertEqual(next(ite2).name, 'H4')
 
         # def __getitem__
         self.assertEqual(str(self.mole[1].name), 'O1')
@@ -60,8 +62,8 @@ class TestMole(unittest.TestCase):
         self.assertEqual(self.mole[1].atomnum, 1)
         # @property elementid
         self.assertEqual(self.mole[1].elementid, 8)
-        # @property atomsym
-        self.assertEqual(self.mole[1].atomsym, 'O')
+        # @property elementsym
+        self.assertEqual(self.mole[1].elementsym, 'O')
         # @property name
         self.assertEqual(self.mole[1].name, 'O1')
         self.assertEqual(self.mole[1].atomtype, 'O1')
@@ -87,7 +89,7 @@ class TestMole(unittest.TestCase):
             f = f.read()
             benz.readfromxyz(f)
         self.assertEqual(benz[1].name, 'C1')
-        self.assertEqual(benz[12].name, 'H12')
+        self.assertEqual(benz[12].name, 'H6')
         #test_connty
         with open('samples/cnnty.com', 'r') as f:
             cn = f.read()
