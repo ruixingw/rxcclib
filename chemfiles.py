@@ -18,7 +18,7 @@ class rxccError(Exception):
 
 class dihdforceconst(object):
     def __init__(self, value, dihd):
-        self.forceconst = value
+        self.value = value
         self.dihd = dihd
         self.repr = dihd.repr
 
@@ -31,6 +31,9 @@ class dihdforceconst(object):
     def __call__(self, value):
         self.forceconst = value
         return
+    @property
+    def forceconst(self):
+        return self.value
 
 
 class File(object):
