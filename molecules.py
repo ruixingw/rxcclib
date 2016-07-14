@@ -126,9 +126,6 @@ class Molecule(object):
         if atomnum2 > atomnum3:
             atomnum2, atomnum3 = atomnum3, atomnum2
             atomnum1, atomnum4 = atomnum4, atomnum1
-        elif atomnum2 == atomnum3:
-            if atomnum1 > atomnum4:
-                atomnum1, atomnum4 = atomnum4, atomnum1
         return self._dihdlist[str(atomnum1) + '-' + str(atomnum2) + '-' + str(
             atomnum3) + '-' + str(atomnum4)]
 
@@ -220,9 +217,6 @@ class Molecule(object):
                         if b > c:
                             b, c = c, b
                             a, d = d, a
-                        elif b == c:
-                            if a > d:
-                                a, d = d, a
                         dihds.append(str(a) + '-' + str(b) + '-' + str(c) + '-'
                                      + str(d))
         angles = list(set(angles))
@@ -445,9 +439,6 @@ class Dihd(object):
         if b > c:
             b, c = c, b
             a, d = d, a
-        elif b == c:
-            if a > d:
-                a, d = d, a
         self._a = mole[a]
         self._b = mole[b]
         self._c = mole[c]
