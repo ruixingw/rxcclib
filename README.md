@@ -10,7 +10,6 @@
 *rxcclib* requires following packages.
 - [Python3](https://www.python.org/) ([Anaconda](https://www.continuum.io/downloads) is strongly recommended)
 - [numpy](http://www.numpy.org/) (Included in Anaconda)
-- [cclib](https://cclib.github.io/) (simply install by ```pip install cclib```)
 
 ## Install
 
