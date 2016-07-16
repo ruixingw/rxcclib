@@ -3,7 +3,7 @@
 
 ## What is it?
 
-*rxcclib* is a code package that defines molecules, MM functions, and methods for file parsing. It is the fundamental library for our other programs such as Parthess, Tsubasa, and Katachi.
+*rxcclib* is a code package that defines molecules, MM functions, and methods for file parsing. It is the fundamental library for our other programs such as Parmhess, Tsubasa, and Katachi.
 
 ## Dependencies
 
