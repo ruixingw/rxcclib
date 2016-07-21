@@ -329,8 +329,8 @@ class GauCOM(object):
             content = '%chk=' + self._parent.chkname + '\n' + content
         with open(self._parent.comname, 'w') as f:
             f.write(content)
-        logging.debug('Run g09 : ' + GauCOM.g09rt + ' ' +
-                      self._parent.comname)
+        logging.info('Run g09 : ' + GauCOM.g09rt + ' ' +
+                     self._parent.comname)
         self.running = subprocess.Popen([GauCOM.g09rt, self._parent.comname])
 
     def rung09a2(self):
@@ -341,8 +341,8 @@ class GauCOM(object):
 
     def isover(self, wait=True):
         # Return None if not ended, True if normal term, False if error.
-        logging.debug('Checking g09 termination for ' + self._parent.comname +
-                      '...')
+        logging.info('Checking g09 termination for ' + self._parent.comname +
+                     '...')
         if wait is False:
             if self.running.poll() is None:
                 return None
@@ -357,11 +357,12 @@ class GauCOM(object):
                 time.sleep(2)
                 if os.path.isfile(self._parent.logname):
                     logging.warning('Log file detected: ' +
-                                    self._parent.logname)
+                                    self._parent.logname,
+                                    'waiting for termination..')
                 continue
 
             with open(self._parent.logname, 'r') as f:
-                for x in f.readlines()[:-6:-1]:
+                for x in f.readlines()[:-10:-1]:
                     output += x
             if output.find('Normal termination') >= 0:
                 logging.debug('    ..normal termination')
@@ -369,7 +370,7 @@ class GauCOM(object):
             if output.find('Error termination') >= 0:
                 logging.error('Error termination in ' +
                               self._parent.comname)
-                raise rxFileError('Error termination')
+                raise rxFileError('G09 Error termination')
                 return False
             if wait is False:
                 return None
