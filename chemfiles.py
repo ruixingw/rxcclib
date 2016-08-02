@@ -5,6 +5,7 @@ import subprocess
 import time
 import logging
 import shutil
+from io import StringIO
 import numpy as np
 import rxcclib.cclibutils as cclibutils
 
@@ -158,27 +159,19 @@ class GauFCHK(object):
                 if string.find('Charge') == 0:
                     self.totalcharge = int(string.split('I')[1])
                     self._parent.totalcharge = self.totalcharge
-                    logging.debug(tmpfchkread + 'Read Charge at line: '
-                                  + string)
 
                 if string.find('Multiplicity') == 0:
                     self.multiplicity = int(string.split('I')[1])
                     self._parent.multiplicity = self.multiplicity
-                    logging.debug(tmpfchkread + 'Read Multiplicity at line: '
-                                  + string)
 
                 if string.find('Atomic numbers') == 0:
                     self.natoms = int(string.split('=')[1])
                     self._parent.natoms = self.natoms
-                    logging.debug(tmpfchkread + 'Read Natoms at line: '
-                                  + string)
                     for string in f:
                         try:
                             self.atomlist.extend(
                                 [int(x) for x in string.split()])
                         except ValueError:
-                            logging.debug(tmpfchkread + ' end read atomlist'
-                                          ' at line: ' + string)
                             assert len(self.atomlist) == self.natoms+1, (
                                 "Error: len(atomlist) != natoms ! ")
                             break
@@ -189,9 +182,6 @@ class GauFCHK(object):
                             self.coordslist.extend(
                                 [float(x) for x in string.split()])
                         except ValueError:
-                            tmp = (tmpfchkread + ' end read Cartesian'
-                                   ' Coordinates at line: ' + string)
-                            logging.debug(tmp)
                             assert (len(self.coordslist) == self.natoms * 3)
                             break
 
@@ -203,10 +193,6 @@ class GauFCHK(object):
                             self.hessian.extend(
                                 [float(x) for x in string.split()])
                         except ValueError:
-                            tmp = ('In ' + self.filename +
-                                   '. read(), end read'
-                                   ' Hessian at line: ' + string)
-                            logging.debug(tmp)
                             assert (len(self.hessian) ==
                                     4.5 * self.natoms ** 2 + 1.5 * self.natoms)
                             break
@@ -218,10 +204,6 @@ class GauFCHK(object):
                             self.inthessian.extend(
                                 [float(x) for x in string.split()])
                         except ValueError:
-                            tmp = ('In ' + self.filename +
-                                   '. read(), end read internal'
-                                   ' Hessian at line: ' + string)
-                            logging.debug(tmp)
                             break
 
         self.coordslist = [cclibutils.convertor(x, "bohr", "Angstrom")
@@ -301,11 +283,67 @@ class GauCOM(object):
 
     def __init__(self, parent):
         self._parent = parent
-        self.xyzfile = ''
 
     @property
     def parent(self):
         return self._parent
+
+    # normal xyz COM file:
+    def read(self):
+        self.atomlist = [None]
+        self.coordslist = []
+        self.connectivity = ''
+        self.xyz = ''
+        with open(self.parent.comname, 'r') as f:
+            content = f.read()
+            tmp = content.split('\n')
+            block = ''
+            for item in tmp:
+                if item.isspace():
+                    item = ''
+                block += item + '\n'
+            block = block.split('\n\n')
+            block = [x + '\n' for x in block]
+
+        # route, title, molespecs, connectivity, mmfunctions
+        blockindex = [0, 1, 2, 3]
+        if block[0].find('allcheck') >= 0:
+            blockindex[1] = -1
+            blockindex[2] = -1
+            blockindex[1:] = [x - 2 for x in blockindex[1:]]
+        if block[0].find('connectivity') < 0:
+            blockindex[3] = -1
+            blockindex[3:] = [x - 1 for x in blockindex[3:]]
+
+        def molespecs(line):
+            tmp = line.split()
+            self.atomlist.append(tmp[0])
+            self.coordslist.extend([float(x) for x in tmp[1:4]])
+        for index, item in enumerate(block):
+            if index == blockindex[0]:
+                self.route = item
+            if index == blockindex[1]:
+                self.title = item
+            if index == blockindex[2]:
+                f = StringIO(item)
+                line = next(f)
+                self.totalcharge = int(line.split()[0])
+                self.multiplicity = int(line.split()[1])
+                for line in f:
+                    molespecs(line)
+            if index == blockindex[3]:
+                f = StringIO(item)
+                for line in f:
+                    self.connectivity += line
+
+        self.coordslist = np.array(self.coordslist)
+        self.atomlist = np.array(self.atomlist)
+        for i in range(0, len(self.atomlist) - 1):
+            tmp = str(self.atomlist[i + 1]) + '   ' + str(self.coordslist[
+                3 * i]) + '   ' + str(self.coordslist[
+                    3 * i + 1]) + '   ' + str(self.coordslist[3 * i +
+                                                              2]) + '\n'
+            self.xyz += tmp
 
     # File operation
     def rung09(self):
@@ -357,8 +395,8 @@ class GauCOM(object):
                 time.sleep(2)
                 if os.path.isfile(self._parent.logname):
                     logging.warning('Log file detected: ' +
-                                    self._parent.logname,
-                                    'waiting for termination..')
+                                    self._parent.logname +
+                                    ' waiting for termination..')
                 continue
 
             with open(self._parent.logname, 'r') as f:
