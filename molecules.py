@@ -379,14 +379,27 @@ class Bond(object):
         self.repr = self._a.name + ' ' + self._b.name
         self._a.addneighbor(mole[b])
         self._b.addneighbor(mole[a])
+        self._atomlist = [None, self._a, self._b]
 
-    def __getitem__(self, value):
-        if value == 1:
-            return self._a
-        elif value == 2:
-            return self._b
-        else:
-            raise rxMolError("Index for bond object must be 1 or 2.")
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            if key != 1 and key != 2:
+                raise rxMolError('key for Bond[key] must be 1 or 2.')
+            return self._atomlist[key]
+        if isinstance(key, slice):
+            start = key.start
+            stop = key.stop
+            if start is None:
+                start = 1
+            L = []
+            for x in range(start, stop):
+                L.append(self._atomlist[x])
+            return L
+
+    # iterate atoms
+    def __iter__(self):
+        for i in range(2):
+            yield self[i + 1]
 
     @property
     def length(self):
@@ -406,16 +419,27 @@ class Angle(object):
         self._ab = mole[a].coords - mole[b].coords
         self._bc = mole[b].coords - mole[c].coords
         self.repr = self._a.name + ' ' + self._b.name + ' ' + self._c.name
+        self._atomlist = [None, self._a, self._b, self._c]
 
-    def __getitem__(self, value):
-        if value == 1:
-            return self._a
-        elif value == 2:
-            return self._b
-        elif value == 3:
-            return self._c
-        else:
-            raise rxMolError("Index for angle object must be 1, 2 or 3.")
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            if key != 1 and key != 2 and key != 3:
+                raise rxMolError('key for Angle[key] must be 1, 2 or 3.')
+            return self._atomlist[key]
+        if isinstance(key, slice):
+            start = key.start
+            stop = key.stop
+            if start is None:
+                start = 1
+            L = []
+            for x in range(start, stop):
+                L.append(self._atomlist[x])
+            return L
+
+    # iterate atoms
+    def __iter__(self):
+        for i in range(3):
+            yield self[i + 1]
 
     @property
     def anglevalue(self):
@@ -445,19 +469,27 @@ class Dihd(object):
         self._d = mole[d]
         self.repr = (self._a.name + ' ' + self._b.name + ' ' +
                      self._c.name + ' ' + self._d.name)
+        self._atomlist = [None, self._a, self._b, self._c, self._d]
 
-    def __getitem__(self, value):
-        if value == 1:
-            return self._a
-        elif value == 2:
-            return self._b
-        elif value == 3:
-            return self._c
-        elif value == 4:
-            return self._d
-        else:
-            raise rxMolError(
-                "Index for dihedral object must be 1, 2 ,3 or 4.")
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            if key != 1 and key != 2 and key != 3 and key != 4:
+                raise rxMolError('key for Dihd[key] must be 1, 2, 3 or 4.')
+            return self._atomlist[key]
+        if isinstance(key, slice):
+            start = key.start
+            stop = key.stop
+            if start is None:
+                start = 1
+            L = []
+            for x in range(start, stop):
+                L.append(self._atomlist[x])
+            return L
+
+    # iterate atoms
+    def __iter__(self):
+        for i in range(4):
+            yield self[i + 1]
 
     @property
     def dihdvalue(self):
@@ -490,19 +522,27 @@ class Improper(object):
         self._d = mole[d]
         self.repr = (self._a.name + ' ' + self._b.name +
                      ' ' + self._c.name + ' ' + self._d.name)
+        self._atomlist = [None, self._a, self._b, self._c, self._d]
 
-    def __getitem__(self, value):
-        if value == 1:
-            return self._a
-        elif value == 2:
-            return self._b
-        elif value == 3:
-            return self._c
-        elif value == 4:
-            return self._d
-        else:
-            raise rxMolError(
-                "Index for improper object must be 1, 2 ,3 or 4.")
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            if key != 1 and key != 2 and key != 3 and key != 4:
+                raise rxMolError('key for Dihd[key] must be 1, 2, 3 or 4.')
+            return self._atomlist[key]
+        if isinstance(key, slice):
+            start = key.start
+            stop = key.stop
+            if start is None:
+                start = 1
+            L = []
+            for x in range(start, stop):
+                L.append(self._atomlist[x])
+            return L
+
+    # iterate atoms
+    def __iter__(self):
+        for i in range(4):
+            yield self[i + 1]
 
     @property
     def impropervalue(self):
@@ -525,8 +565,3 @@ class Improper(object):
     def __str__(self):
         return ("Improper object of improper " + self._a.name +
                 '-' + self._b.name + '-' + self._c.name + '-' + self._d.name)
-
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()

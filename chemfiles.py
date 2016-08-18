@@ -1,5 +1,4 @@
 # From fchk read Charge, Multiplicity, Coordinates
-from __future__ import print_function
 import os
 import subprocess
 import time
@@ -152,7 +151,6 @@ class GauFCHK(object):
 
         logging.info('Read fchk:' + self._parent.fchkname)
         # FCHK parser
-        tmpfchkread = 'In ' + self.filename + '.read(), '
         with open(self._parent.fchkname, 'r') as f:
             for string in f:
 
@@ -190,14 +188,32 @@ class GauFCHK(object):
                     self.hessian = []
                     for string in f:
                         try:
+                            tmp = string.split()
+                            tmpstring = []
+                            for item in tmp:
+                                if item[-4] == '-':
+                                    item = item[:-4] + 'E' + item[-4:]
+                                tmpstring.append(float(item))
                             self.hessian.extend(
-                                [float(x) for x in string.split()])
+                                [float(x) for x in tmpstring])
                         except ValueError:
                             assert (len(self.hessian) ==
                                     4.5 * self.natoms ** 2 + 1.5 * self.natoms)
                             break
+
+                # Read Internal Forces
+                if string.find('Internal Forces') == 0:
+                    self.intforces = []
+                    for string in f:
+                        try:
+                            self.intforces.extend(
+                                [float(x) for x in string.split()])
+                        except ValueError:
+                            break
+
                 # Read Internal Hessian
                 if string.find('Internal Force Constants') == 0:
+
                     self.inthessian = []
                     for string in f:
                         try:
@@ -439,11 +455,60 @@ class GauLOG(object):
                     break
         return self.orn
 
+    def read(self):  # Only read internal forces/Hessian
+        with open(self._parent.logname, 'r') as f:
+            # Read internal Hessian
+            for line in f:
+                if line.find('Internal force constants') >= 0:
+                    self.inthessian = []
+                    break
+            for line in f:
+                if line.find('Force constants') >= 0:
+                    break
+                sp = line.split()
+                if len(sp) == 1:
+                    continue
+                if sp[1].isdigit():
+                    continue
+                for item in sp[1:]:
+                    tmp = map(lambda x: x if x != 'D' else 'E', item)
+                    tmp = list(tmp)
+                    tmp = ''.join(tmp)
+                    tmp = float(tmp)
+                    self.inthessian.append(tmp)
+
+            # Read internal forces
+            for line in f:
+                if line.find('Final forces over variables') >= 0:
+                    break
+            tmpp = []
+            for line in f:
+                tmp = line.split('D')
+                if len(tmp) >= 2:
+                    tmpp.append(tmp[0] + 'E' + tmp[1][0:3])
+                if len(tmp) >= 3:
+                    tmpp.append(tmp[1][3:] + 'E' + tmp[2][0:3])
+                if len(tmp) >= 4:
+                    tmpp.append(tmp[2][3:] + 'E' + tmp[3][0:3])
+                if len(tmp) >= 5:
+                    tmpp.append(tmp[3][3:] + 'E' + tmp[4][0:3])
+                if len(tmp) == 1:
+                    break
+            tmpp = [float(x) for x in tmpp]
+            self.intforces = np.array(tmpp)
+
+    def findintHessianElement(self, i, j):  # i, j: coordinate number
+        if i < j:
+            i, j = j, i
+        num = i * (i - 1) / 2 + j
+        num = int(num)
+        return self.inthessian[num - 1]
+
     def getfreq(self):
         freq = []
         p = False
         with open(self._parent.logname, 'r') as f:
-            for line in f.readlines():
+            for line in f:
                 if line.find('Frequencies -- ') >= 0:
                     freq.extend(line.split()[2:])
                 if line.find('#P') >= 0:
