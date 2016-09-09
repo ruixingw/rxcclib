@@ -497,11 +497,14 @@ class Dihd(object):
         v2 = self._b.coords - self._c.coords
         v3 = self._c.coords - self._d.coords
         v1u = v1 / np.linalg.norm(v1)
-        v2u = v1 / np.linalg.norm(v2)
-        v3u = v1 / np.linalg.norm(v3)
+        v2u = v2 / np.linalg.norm(v2)
+        v3u = v3 / np.linalg.norm(v3)
         n1 = np.cross(v1u, v2u)
         n2 = np.cross(v2u, v3u)
+        n1 = n1 / np.linalg.norm(n1)
+        n2 = n2 / np.linalg.norm(n2)
         dihd = np.arccos(np.dot(n1, n2)) * 180.0 / np.pi
+
         if np.isnan(dihd):
             if (n1 == n2).all():
                 return 0.0

@@ -22,8 +22,8 @@ class rxFileError(Exception):
 class File(object):
     def __init__(self, name):
         self.pwd = os.path.abspath(os.path.join('.', name))  # filepath
-        self.name = name   # filename with relative path
-        self.pwd = os.path.split(self.name)[0]
+        self.basename = name   # filename with relative path
+        self.pwd = os.path.split(self.basename)[0]
         self._com = GauCOM(self)
         self._log = GauLOG(self)
         self._fchk = GauFCHK(self)
@@ -33,23 +33,23 @@ class File(object):
 
     @property
     def comname(self):
-        return self.name + '.com'
+        return self.basename + '.com'
 
     @property
     def logname(self):
-        return self.name + '.log'
+        return self.basename + '.log'
 
     @property
     def chkname(self):
-        return self.name + '.chk'
+        return self.basename + '.chk'
 
     @property
     def fchkname(self):
-        return self.name + '.fchk'
+        return self.basename + '.fchk'
 
     @property
     def mol2name(self):
-        return self.name + '.mol2'
+        return self.basename + '.mol2'
 
     @property
     def com(self):
@@ -183,6 +183,20 @@ class GauFCHK(object):
                             assert (len(self.coordslist) == self.natoms * 3)
                             break
 
+                # Read Force
+                if string.find('Cartesian Gradient') == 0:
+                    self.force = []
+                    for string in f:
+                        try:
+                            tmp = string.split()
+                            for i, item in enumerate(tmp):
+                                    if item[-4] == '-':
+                                        tmp[i] = item[:-4] + 'E' + item[-4:]
+                            self.force.extend([float(x) for x in tmp])
+                        except (ValueError, IndexError):
+                            assert (len(self.force) == 3 * self.natoms)
+                            break
+
                 # Read Hessian
                 if string.find('Cartesian Force Constants') == 0:
                     self.hessian = []
@@ -203,10 +217,10 @@ class GauFCHK(object):
 
                 # Read Internal Forces
                 if string.find('Internal Forces') == 0:
-                    self.intforces = []
+                    self.intforce = []
                     for string in f:
                         try:
-                            self.intforces.extend(
+                            self.intforce.extend(
                                 [float(x) for x in string.split()])
                         except ValueError:
                             break
@@ -238,8 +252,7 @@ class GauFCHK(object):
     def findHessianElement(self, i, j):  # i, j: coordinate number
         if i < j:
             i, j = j, i
-        num = i * (i - 1) / 2 + j
-        num = int(num)
+        num = int(i * (i - 1) / 2 + j)
         return self.hessian[num - 1]
 
     def find33Hessian(self, i, j):  # i, j: atom number
@@ -495,7 +508,7 @@ class GauLOG(object):
                 if len(tmp) == 1:
                     break
             tmpp = [float(x) for x in tmpp]
-            self.intforces = np.array(tmpp)
+            self.intforce = np.array(tmpp)
 
     def findintHessianElement(self, i, j):  # i, j: coordinate number
         if i < j:
