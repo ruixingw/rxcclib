@@ -503,13 +503,14 @@ class Dihd(object):
         n2 = np.cross(v2u, v3u)
         n1 = n1 / np.linalg.norm(n1)
         n2 = n2 / np.linalg.norm(n2)
-        dihd = np.arccos(np.dot(n1, n2)) * 180.0 / np.pi
+        m1 = np.cross(n1,v2u)
+        x = np.dot(n1, n2)
+        y = np.dot(m1, n2)
 
-        if np.isnan(dihd):
-            if (n1 == n2).all():
-                return 0.0
-            else:
-                return 180.0
+        # arctan2 is better than arccos
+        # see http://math.stackexchange.com/a/47084
+        dihd = np.arctan2(y, x) * 180.0 / np.pi
+        # dihd = np.arccos(np.dot(n1, n2)) * 180.0 / np.pi
         return dihd
 
     def __str__(self):

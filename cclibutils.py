@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+import numpy as np
 # -*- coding: utf-8 -*-
 #
 # This file is part of cclib (http://cclib.github.io), a library for parsing
@@ -11,6 +13,30 @@
 # the full license online at http://www.gnu.org/copyleft/lgpl.html.
 
 """Utilities often used by cclib parsers and scripts"""
+
+
+def findrowcolumn(number):
+    """
+    Return the row number and column number of Nth entry  of a lower triangle matrix.
+    NUMBER, ROW, COLUMN counts from ZERO!!!
+    Example:
+    0
+    1  2
+    3  4  5
+    6  7  8  9
+    10 11 12 13 14
+    15 16 17 18 19 20
+
+    >>> findrowcolumn(18)
+    (5,3)
+    """
+    number += 1 
+    y = int((np.sqrt(1 + 8 * number) - 1) / 2)
+    b = int(number - (y**2 + y) / 2)
+    if b == 0:
+        return (y - 1, y - 1)
+    else:
+        return (y, b - 1)
 
 
 def convertor(value, fromunits, tounits):
