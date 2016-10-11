@@ -1,10 +1,9 @@
 # Molecules, atoms definition
 from __future__ import print_function
-import inspect
 import logging
 from io import StringIO
 import numpy as np
-import rxcclib.cclibutils as cclibutils
+import rxcclib.utils.cclibutils as cclibutils
 
 
 class rxMolError(Exception):
@@ -49,6 +48,13 @@ class Molecule(object):
         self._elementlist = {}
         for element in Molecule.periotable.element[1:]:
             self._elementlist.update({element: [None]})
+
+    @property
+    def coordslist(self):
+        L = []
+        for atom in self:
+            L.extend(atom.coords)
+        return L
 
     @property
     def natoms(self):
@@ -151,6 +157,9 @@ class Molecule(object):
     def __iter__(self):
         for i in range(self.natoms):
             yield self[i + 1]
+
+    def __len__(self):
+        return self.natoms
 
     # Read structure from xyz
     def readfromxyz(self, string):
@@ -263,9 +272,6 @@ class Atom(object):
                  coords,
                  unit='angstrom'):  # molecule object,int,[float,float,float]
         # Assertion
-        callername = inspect.stack()[1][3]
-        assert callername == 'addatom', ("Atom must be added"
-                                         " via Molecule.addatom method")
         assert isinstance(mole, Molecule), ("First argument must be"
                                             " a molecule object!. Use "
                                             "Molecule.addatom method to avoid"
@@ -452,6 +458,12 @@ class Angle(object):
             else:
                 return 180.0
         return angle
+    @property
+    def anglesin(self):
+        return np.sin(self.anglevalue * np.pi / 180)
+    @property
+    def anglecos(self):
+        return np.cos(self.anglevalue * np.pi / 180)
 
     def __str__(self):
         return ("Angle object of angle " + self._a.name +
@@ -492,7 +504,20 @@ class Dihd(object):
             yield self[i + 1]
 
     @property
-    def dihdvalue(self):
+    def anglesin(self):
+        return np.sin(self.anglevalue * np.pi / 180)
+    @property
+    def anglecos(self):
+        return np.cos(self.anglevalue * np.pi / 180)
+
+    @property
+    def anglevalue(self):
+        # arctan2 is better than arccos
+        # see http://math.stackexchange.com/a/47084
+        # and http://stackoverflow.com/a/12011762
+        # if someday this code face performance problem
+        # try "new_dihedral" in this post:
+        # http://stackoverflow.com/a/34245697/5677043
         v1 = self._a.coords - self._b.coords
         v2 = self._b.coords - self._c.coords
         v3 = self._c.coords - self._d.coords
@@ -503,12 +528,9 @@ class Dihd(object):
         n2 = np.cross(v2u, v3u)
         n1 = n1 / np.linalg.norm(n1)
         n2 = n2 / np.linalg.norm(n2)
-        m1 = np.cross(n1,v2u)
+        m1 = np.cross(n1, v2u)
         x = np.dot(n1, n2)
         y = np.dot(m1, n2)
-
-        # arctan2 is better than arccos
-        # see http://math.stackexchange.com/a/47084
         dihd = np.arctan2(y, x) * 180.0 / np.pi
         # dihd = np.arccos(np.dot(n1, n2)) * 180.0 / np.pi
         return dihd
@@ -531,7 +553,7 @@ class Improper(object):
     def __getitem__(self, key):
         if isinstance(key, int):
             if key != 1 and key != 2 and key != 3 and key != 4:
-                raise rxMolError('key for Dihd[key] must be 1, 2, 3 or 4.')
+                raise rxMolError('key for improper[key] must be 1, 2, 3 or 4.')
             return self._atomlist[key]
         if isinstance(key, slice):
             start = key.start
@@ -549,21 +571,31 @@ class Improper(object):
             yield self[i + 1]
 
     @property
-    def impropervalue(self):
+    def anglesin(self):
+        return np.sin(self.anglevalue * np.pi / 180)
+    @property
+    def anglecos(self):
+        return np.cos(self.anglevalue * np.pi / 180)
+
+    @property
+    def anglevalue(self):
+        # see comment in Dihd.anglevalue
         v1 = self._a.coords - self._b.coords
         v2 = self._b.coords - self._c.coords
         v3 = self._c.coords - self._d.coords
         v1u = v1 / np.linalg.norm(v1)
-        v2u = v1 / np.linalg.norm(v2)
-        v3u = v1 / np.linalg.norm(v3)
+        v2u = v2 / np.linalg.norm(v2)
+        v3u = v3 / np.linalg.norm(v3)
         n1 = np.cross(v1u, v2u)
         n2 = np.cross(v2u, v3u)
-        improper = np.arccos(np.dot(n1, n2)) * 180.0 / np.pi
-        if np.isnan(improper):
-            if (n1 == n2).all():
-                return 0.0
-            else:
-                return 180.0
+        n1 = n1 / np.linalg.norm(n1)
+        n2 = n2 / np.linalg.norm(n2)
+        m1 = np.cross(n1, v2u)
+        x = np.dot(n1, n2)
+        y = np.dot(m1, n2)
+
+        improper = np.arctan2(y, x) * 180.0 / np.pi
+        # improper = np.arccos(np.dot(n1, n2)) * 180.0 / np.pi
         return improper
 
     def __str__(self):

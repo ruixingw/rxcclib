@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import rxcclib.molecules as rxmol
+import rxcclib.Geometry.molecules as rxmol
 import unittest, os
 
 
@@ -75,7 +75,7 @@ class TestMole(unittest.TestCase):
         # test_angle(self):
         self.assertEqual(self.mole.angle(2, 1, 3).anglevalue, 90.0)
         # test dihd
-        self.assertEqual(self.mole.dihd(4, 3, 1, 2).dihdvalue, 90.0)
+        self.assertEqual(self.mole.dihd(4, 3, 1, 2).anglevalue, -90.0)
         # test_bondfunc(self):
         self.mole[1].atomtype = 'oh'
         self.mole[2].atomtype = 'ho'

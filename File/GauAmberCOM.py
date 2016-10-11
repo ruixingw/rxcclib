@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from io import StringIO
 import numpy as np
-import rxcclib.chemfiles as rxfile
+import rxcclib.File.chemfiles as rxfile
 
 
 class DihdFunction(object):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import rxcclib.chemfiles as rxccfile
-import rxcclib.molecules as rxmol
+import rxcclib.File.chemfiles as rxccfile
+import rxcclib.Geometry.molecules as rxmol
 import unittest, os, logging
 import numpy as np
 from io import StringIO

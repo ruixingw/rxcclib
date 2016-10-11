@@ -6,7 +6,7 @@ import logging
 import shutil
 from io import StringIO
 import numpy as np
-import rxcclib.cclibutils as cclibutils
+import rxcclib.utils.cclibutils as cclibutils
 
 
 class rxFileError(Exception):

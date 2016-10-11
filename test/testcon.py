@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import numpy as np
-import rxcclib.molecules as rxmol
-import rxcclib.chemfiles as rxccfile
+import rxcclib.Geometry.molecules as rxmol
+import rxcclib.File.chemfiles as rxccfile
 import unittest
 from io import StringIO
 
