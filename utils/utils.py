@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
 
-def findrowcolumn(number):
+def find_rowcolumn_of_LTri(number):
     """
     Return the row number and column number of Nth entry  of a lower triangle matrix.
     NUMBER, ROW, COLUMN are counted from ZERO!!!
