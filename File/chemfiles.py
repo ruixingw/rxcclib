@@ -22,13 +22,14 @@ class rxFileError(Exception):
 class File(object):
     def __init__(self, name):
         self.pwd = os.path.abspath(os.path.join('.', name))  # filepath
-        self.basename = name   # filename with relative path
+        self.basename = name  # filename with relative path
         self.pwd = os.path.split(self.basename)[0]
         self._com = GauCOM(self)
         self._log = GauLOG(self)
         self._fchk = GauFCHK(self)
         self._mol2 = Mol2(self)
         self.default = 'fchk'
+
     # subfile objects
 
     @property
@@ -80,8 +81,8 @@ class File(object):
             if self._natoms != value:
                 raise rxFileError(
                     'Error: natoms is already read,' +
-                    " and not consistent with new value: Current value is "
-                    + str(self._natoms) + ", New value is " + str(value))
+                    " and not consistent with new value: Current value is " +
+                    str(self._natoms) + ", New value is " + str(value))
 
     @property
     def multiplicity(self):
@@ -95,8 +96,8 @@ class File(object):
             if self._multiplicity != value:
                 raise rxFileError(
                     "Error: multiplicity is already read," +
-                    " and not consistent with new value: Current value is "
-                    + str(self._multiplicity) + ", New value is " + str(value))
+                    " and not consistent with new value: Current value is " +
+                    str(self._multiplicity) + ", New value is " + str(value))
 
     @property
     def totalcharge(self):
@@ -110,8 +111,8 @@ class File(object):
             if self._totalcharge != value:
                 raise rxFileError(
                     "Error: totalcharge is already read," +
-                    " and not consistent with new value: Current value is "
-                    + str(self._totalcharge) + ", New value is " + str(value))
+                    " and not consistent with new value: Current value is " +
+                    str(self._totalcharge) + ", New value is " + str(value))
 
     @property
     def atomtypelist(self):
@@ -170,7 +171,7 @@ class GauFCHK(object):
                             self.atomlist.extend(
                                 [int(x) for x in string.split()])
                         except ValueError:
-                            assert len(self.atomlist) == self.natoms+1, (
+                            assert len(self.atomlist) == self.natoms + 1, (
                                 "Error: len(atomlist) != natoms ! ")
                             break
 
@@ -190,8 +191,8 @@ class GauFCHK(object):
                         try:
                             tmp = string.split()
                             for i, item in enumerate(tmp):
-                                    if item[-4] == '-':
-                                        tmp[i] = item[:-4] + 'E' + item[-4:]
+                                if item[-4] == '-':
+                                    tmp[i] = item[:-4] + 'E' + item[-4:]
                             self.force.extend([float(x) for x in tmp])
                         except (ValueError, IndexError):
                             assert (len(self.force) == 3 * self.natoms)
@@ -208,11 +209,10 @@ class GauFCHK(object):
                                 if item[-4] == '-':
                                     item = item[:-4] + 'E' + item[-4:]
                                 tmpstring.append(float(item))
-                            self.hessian.extend(
-                                [float(x) for x in tmpstring])
+                            self.hessian.extend([float(x) for x in tmpstring])
                         except ValueError:
                             assert (len(self.hessian) ==
-                                    4.5 * self.natoms ** 2 + 1.5 * self.natoms)
+                                    4.5 * self.natoms**2 + 1.5 * self.natoms)
                             break
 
                 # Read Internal Forces
@@ -236,8 +236,10 @@ class GauFCHK(object):
                         except ValueError:
                             break
 
-        self.coordslist = [cclibutils.convertor(x, "bohr", "Angstrom")
-                           for x in self.coordslist]
+        self.coordslist = [
+            cclibutils.convertor(x, "bohr", "Angstrom")
+            for x in self.coordslist
+        ]
         self.coordslist = np.array(self.coordslist)
         self.atomlist = np.array(self.atomlist)
         self.hessian = np.array(self.hessian)
@@ -250,10 +252,7 @@ class GauFCHK(object):
         return True
 
     def findHessianElement(self, i, j):  # i, j: coordinate number
-        if i < j:
-            i, j = j, i
-        num = int(i * (i - 1) / 2 + j)
-        return self.hessian[num - 1]
+        return self.hessian[utils.find_num_of_LTri(i, j)]
 
     def find33Hessian(self, i, j):  # i, j: atom number
         if i < j:
@@ -265,24 +264,23 @@ class GauFCHK(object):
         j1 = 3 * (j - 1) + 1
         j2 = 3 * (j - 1) + 2
         j3 = 3 * j
-        tthess.append([self.findHessianElement(i1, j1),
-                       self.findHessianElement(i1, j2),
-                       self.findHessianElement(i1, j3)])
-        tthess.append([self.findHessianElement(i2, j1),
-                       self.findHessianElement(i2, j2),
-                       self.findHessianElement(i2, j3)])
-        tthess.append([self.findHessianElement(i3, j1),
-                       self.findHessianElement(i3, j2),
-                       self.findHessianElement(i3, j3)])
+        tthess.append([
+            self.findHessianElement(i1, j1), self.findHessianElement(i1, j2),
+            self.findHessianElement(i1, j3)
+        ])
+        tthess.append([
+            self.findHessianElement(i2, j1), self.findHessianElement(i2, j2),
+            self.findHessianElement(i2, j3)
+        ])
+        tthess.append([
+            self.findHessianElement(i3, j1), self.findHessianElement(i3, j2),
+            self.findHessianElement(i3, j3)
+        ])
         tthess = np.array(tthess)
         return tthess
 
     def findintHessianElement(self, i, j):  # i, j: coordinate number
-        if i < j:
-            i, j = j, i
-        num = i * (i - 1) / 2 + j
-        num = int(num)
-        return self.inthessian[num - 1]
+        return self.inthessian[utils.find_num_of_LTri(i, j)]
 
 
 class Mol2(object):
@@ -348,6 +346,7 @@ class GauCOM(object):
             tmp = line.split()
             self.atomlist.append(tmp[0])
             self.coordslist.extend([float(x) for x in tmp[1:4]])
+
         for index, item in enumerate(block):
             if index == blockindex[0]:
                 self.route = item
@@ -396,8 +395,7 @@ class GauCOM(object):
             content = '%chk=' + self._parent.chkname + '\n' + content
         with open(self._parent.comname, 'w') as f:
             f.write(content)
-        logging.info('Run g09 : ' + GauCOM.g09rt + ' ' +
-                     self._parent.comname)
+        logging.info('Run g09 : ' + GauCOM.g09rt + ' ' + self._parent.comname)
         self.running = subprocess.Popen([GauCOM.g09rt, self._parent.comname])
 
     def rung09a2(self):
@@ -423,9 +421,8 @@ class GauCOM(object):
                 logging.warning('No log file detected. Wait 2s..')
                 time.sleep(2)
                 if os.path.isfile(self._parent.logname):
-                    logging.warning('Log file detected: ' +
-                                    self._parent.logname +
-                                    ' waiting for termination..')
+                    logging.warning('Log file detected: ' + self._parent.
+                                    logname + ' waiting for termination..')
                 continue
 
             with open(self._parent.logname, 'r') as f:
@@ -435,8 +432,7 @@ class GauCOM(object):
                 logging.debug('    ..normal termination')
                 return True
             if output.find('Error termination') >= 0:
-                logging.error('Error termination in ' +
-                              self._parent.comname)
+                logging.error('Error termination in ' + self._parent.comname)
                 raise rxFileError('G09 Error termination')
                 return False
             if wait is False:
@@ -540,9 +536,8 @@ class GauLOG(object):
 
     def runantecham(self):
         logging.info('Runing antechamber: \n')
-        command = (GauLOG.antecommand + ' -i ' +
-                   self._parent.logname + ' -fi gout -o ' +
-                   self._parent.mol2name + ' -fo mol2' +
-                   ' -pf y')
+        command = (
+            GauLOG.antecommand + ' -i ' + self._parent.logname +
+            ' -fi gout -o ' + self._parent.mol2name + ' -fo mol2' + ' -pf y')
         logging.info(command)
         os.system(command)
