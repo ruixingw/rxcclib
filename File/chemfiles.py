@@ -7,7 +7,7 @@ import shutil
 from io import StringIO
 import numpy as np
 import rxcclib.utils.cclibutils as cclibutils
-
+table = cclibutils.PeriodicTable()
 
 class rxFileError(Exception):
     def __init(self, value):
@@ -169,7 +169,7 @@ class GauFCHK(object):
                     for string in f:
                         try:
                             self.atomlist.extend(
-                                [int(x) for x in string.split()])
+                                [table.element[int(x)] for x in string.split()])
                         except ValueError:
                             assert len(self.atomlist) == self.natoms + 1, (
                                 "Error: len(atomlist) != natoms ! ")
@@ -405,17 +405,7 @@ class GauCOM(object):
         GauCOM.g09rt = bak
 
     def isover(self, wait=True):
-        # Return None if not ended, True if normal term, False if error.
-        logging.info('Checking g09 termination for ' + self._parent.comname +
-                     '...')
-        if wait is False:
-            if self.running.poll() is None:
-                return None
-        elif wait is True:
-            self.running.wait()
-        else:
-            raise
-        while True:
+        def checkterm():
             output = ''
             if not os.path.isfile(self._parent.logname):
                 logging.warning('No log file detected. Wait 2s..')
@@ -423,7 +413,6 @@ class GauCOM(object):
                 if os.path.isfile(self._parent.logname):
                     logging.warning('Log file detected: ' + self._parent.
                                     logname + ' waiting for termination..')
-                continue
 
             with open(self._parent.logname, 'r') as f:
                 for x in f.readlines()[:-10:-1]:
@@ -431,13 +420,28 @@ class GauCOM(object):
             if output.find('Normal termination') >= 0:
                 logging.debug('    ..normal termination')
                 return True
-            if output.find('Error termination') >= 0:
+            elif output.find('Error termination') >= 0:
                 logging.error('Error termination in ' + self._parent.comname)
                 raise rxFileError('G09 Error termination')
-                return False
-            if wait is False:
+            else:
+                logging.error('G09 Ended Accidentally')
+                raise rxFileError('G09 Error End')
+
+
+        # Return None if not ended, True if normal term, raise rxFileError if error.
+        logging.info('Checking g09 termination for ' + self._parent.comname +
+                     '...')
+        if wait is False:
+            if self.running.poll() is None:
                 return None
-            time.sleep(0.5)
+            else:
+                checkterm()
+        elif wait is True:
+            # if wait, check termination
+            self.running.wait()
+            checkterm()
+        else:
+            raise
 
 
 class GauLOG(object):

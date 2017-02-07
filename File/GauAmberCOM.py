@@ -39,6 +39,7 @@ class MMFunction(object):
             self.b = fun[2]
             self.c = fun[3]
             self.d = fun[4]
+            self.forceconst = None
             self.dihdfunctions = []
             phase = []
             self.npaths = float(fun[13])
