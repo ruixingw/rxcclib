@@ -1,6 +1,6 @@
 %chk=samples/bencom.chk
-%mem=12gb
-%nproc=6
+%mem=1gb
+%nproc=4
 #p b3lyp/genecp nosymm geom=connectivity
 opt freq iop(7/33=1)
 

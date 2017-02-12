@@ -5,8 +5,8 @@ import unittest, os, logging
 import numpy as np
 from io import StringIO
 
-rxccfile.GauCOM.g09rt = 'myg09boon'
-rxccfile.GauCOM.g09a2rt = 'myg09a2boon'
+rxccfile.GauCOM.g09rt = 'g09'
+rxccfile.GauCOM.g09a2rt = 'g09'
 os.system(
     'rm A* q* Q* p* esout *Gaussian* samples/bencom.fchk samples/bencom.chk samples/bencom.log')
 

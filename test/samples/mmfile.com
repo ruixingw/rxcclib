@@ -1,5 +1,5 @@
-%mem=12gb
-%nproc=6
+%mem=1gb
+%nproc=4
 #p amber=softonly geom=connectivity nosymm
 iop(4/33=3,7/33=1)
 freq=noraman

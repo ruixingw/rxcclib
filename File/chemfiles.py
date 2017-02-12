@@ -7,6 +7,7 @@ import shutil
 from io import StringIO
 import numpy as np
 import rxcclib.utils.cclibutils as cclibutils
+import rxcclib.utils.utils as utils
 table = cclibutils.PeriodicTable()
 
 class rxFileError(Exception):
