@@ -1,4 +1,4 @@
-%chk=samples/bencom.chk
+%chk=/home/ruixingw/.PYTHONPATH/rxcclib/test/samples/bencom.chk
 %mem=1gb
 %nproc=4
 #p b3lyp/genecp nosymm geom=connectivity
@@ -36,5 +36,11 @@ H     -1.982726171199      1.295519560979     -0.001284573853
 C H 0
 6-31+g*
 ****
+
+
+
+
+
+
 
 

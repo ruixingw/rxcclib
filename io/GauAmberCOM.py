@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from io import StringIO
 import numpy as np
-import rxcclib.File.chemfiles as rxfile
+import rxcclib.io.Gaussian as rxfile
 
 
 class DihdFunction(object):
@@ -46,11 +46,9 @@ class MMFunction(object):
             for x in fun[5:9]:
                 phase.append(int(x))
             for i, paras in enumerate(fun[9:13]):
-                self.dihdfunctions.append(DihdFunction(i + 1,
-                                                       phase[i],
-                                                       newfloat(paras),
-                                                       self.npaths,
-                                                       self))
+                self.dihdfunctions.append(
+                    DihdFunction(i + 1, phase[i],
+                                 newfloat(paras), self.npaths, self))
             self.repr = self.a + ' ' + self.b + ' ' + self.c + ' ' + self.d
         elif fun[0] == 'HrmBnd1':
             self.type = 'angle'
@@ -91,12 +89,12 @@ class MMFunction(object):
 class GauAmberCOM(rxfile.GauCOM):
     def __init__(self, parent):
         super().__init__(parent)
-        self.parent._com = self
+        self._parent._com = self
 
     def read(self):
-        self.atomlist = [None]
-        self.atomtypelist = [None]
-        self.atomchargelist = [None]
+        self.atomlist = []
+        self.atomtypelist = []
+        self.atomchargelist = []
         self.coordslist = []
         self.connectivity = ''
         self.dihdfunc = []
@@ -107,7 +105,7 @@ class GauAmberCOM(rxfile.GauCOM):
         self.vdw = []
         self.xyz = ''
         self.vdwdict = {}
-        with open(self.parent.comname, 'r') as f:
+        with open(self.abspath, 'r') as f:
             content = f.read()
             tmp = content.split('\n')
             block = ''
@@ -135,14 +133,14 @@ class GauAmberCOM(rxfile.GauCOM):
                 if tmp.count('-') == 2:
                     tmp = tmp.split('-')
                     self.atomtypelist.append(tmp[1])
-                    self.atomchargelist.append(tmp[2])
+                    self.atomchargelist.append(float(tmp[2]))
                 elif tmp.count('-') == 3:
                     tmp = tmp.split('-')
                     self.atomtypelist.append(tmp[1])
                     self.atomchargelist.append(-float(tmp[3]))
             else:
                 self.atomlist.append(tmp)
-            self.coordslist.extend(line.split()[1:4])
+            self.coordslist.extend([float(x) for x in line.split()[1:4]])
 
         for index, item in enumerate(block):
             if index == blockindex[0]:
@@ -152,14 +150,12 @@ class GauAmberCOM(rxfile.GauCOM):
             if index == blockindex[2]:
                 f = StringIO(item)
                 line = next(f)
-                self.totalcharge = line.split()[0]
-                self.multiplicity = line.split()[1]
+                self.totalcharge = int(line.split()[0])
+                self.multiplicity = int(line.split()[1])
                 for line in f:
                     molespecs(line)
             if index == blockindex[3]:
-                f = StringIO(item)
-                for line in f:
-                    self.connectivity += line
+                self.connectivity = item
             if index == blockindex[4]:
                 f = StringIO(item)
                 for line in f:
@@ -174,16 +170,16 @@ class GauAmberCOM(rxfile.GauCOM):
                         self.additionfunc.append(thisline)
                     elif thisline.type == 'vdw':
                         self.vdw.append(thisline)
-                        self.vdwdict.update({thisline.atomtype: (
-                            thisline.radius, thisline.welldepth)})
+                        self.vdwdict[thisline.atomtype] = (thisline.radius,
+                                                           thisline.welldepth)
                     elif thisline.type == 'improper':
                         self.improperfunc.append(thisline)
 
         self.coordslist = np.array(self.coordslist)
-        for i in range(0, len(self.atomlist) - 1):
-            tmp = str(self.atomlist[i + 1]) + '   ' + str(self.coordslist[
-                3 * i]) + '   ' + str(self.coordslist[
-                    3 * i + 1]) + '   ' + str(self.coordslist[3 * i +
-                                                              2]) + '\n'
+        for i in range(0, len(self.atomlist)):
+            tmp = str(self.atomlist[i]) + '   ' + str(
+                self.coordslist[3 * i-3]) + '   ' + str(
+                    self.coordslist[3 * i -2]) + '   ' + str(
+                        self.coordslist[3 * i -1]) + '\n'
             self.xyz += tmp
         return True
