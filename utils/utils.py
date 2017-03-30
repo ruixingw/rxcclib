@@ -22,7 +22,19 @@ def toGroupOfThree(L):
 
     return l
 
+def toList(L):
+    """
+    Example:
 
+    >>> toList([(1, 2, 3), (4, 5, 6), (7, 8, 9)])
+    [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    """
+    newL = []
+    for group in L:
+        for item in group:
+            newL.append(item)
+    return newL
 
 def getRC(N):
     """

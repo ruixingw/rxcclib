@@ -351,7 +351,7 @@ class Bond(object):
         return np.linalg.norm(self.vec)
 
     def __repr__(self):
-        return "Bond " + self._a.name + '-' + self._b.name
+        return "Bond " + self[1].name + '-' + self[2].name
 
     __str__ = __repr__
 
