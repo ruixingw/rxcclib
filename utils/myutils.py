@@ -1,4 +1,7 @@
 
+
+
+
 def toGroupOfThree(L):
     """
     Example:
@@ -26,3 +29,7 @@ def toList(L):
         for item in group:
             newL.append(item)
     return newL
+
+if __name__ == "__main__":
+    import doctest, utils
+    doctest.testmod(utils, verbose=False)
