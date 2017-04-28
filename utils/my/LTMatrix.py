@@ -8,7 +8,7 @@ class LTMatrix(list):
         """
         list.__init__(self,L)
         self.list = L
-        i,j = LTMatrix.getRC(len(L) - 1)
+        i,j = LTMatrix.getRowColumn(len(L) - 1)
         assert i == j, "Not a LTMatrix"
         self.dimension = i + 1
 
@@ -16,27 +16,29 @@ class LTMatrix(list):
         """
         Accept one or two integers.
         ONE: get item at the given position (count from zero)
-        TWO: get item at the given (row, column) (count from zero)
+        TWO: get item at the given (row, column) (both counted from zero)
         """
         if type(key) is tuple:
-            return self[LTMatrix.getNum(*key)]
-        return self.list[key]
+            return self.list[LTMatrix.getPosition(*key)]
+        else:
+            return self.list[key]
 
 
     @staticmethod
-    def getRC(N):
+    def getRowColumn(N):
         """
         Return the row and column number of the Nth entry  of a lower triangular matrix.
         N, ROW, COLUMN are counted from ZERO!
         Example:
-        0
-        1  2
-        3  4  5
-        6  7  8  9
-        10 11 12 13 14
-        15 16 17 18 19 20
+           C0 C1 C2 C3 C4 C5
+        R0 0
+        R1 1  2
+        R2 3  4  5
+        R3 6  7  8  9
+        R4 10 11 12 13 14
+        R5 15 16 17 18 19 20
 
-        >>> getRC(18)
+        >>> LTMatrix.getRowColumn(18)
         (5, 3)
 
         18th element is at row 5 and column 3. (count from zero)
@@ -50,11 +52,12 @@ class LTMatrix(list):
             return (y, b - 1)
 
     @staticmethod
-    def getNum(i, j):
+    def getPosition(i, j):
         """
-        Return the number of entry in the i-th row and j-th column of a symmetric matrix. (count from zero)
+        Return the number of entry in the i-th row and j-th column of a symmetric matrix.
+        All numbers are counted from ZERO.
 
-        >>> getNum(3, 4)
+        >>> LTMatrix.getPosition(3, 4)
         13
         """
         i += 1
@@ -66,22 +69,29 @@ class LTMatrix(list):
         return num - 1
 
 
-    def constfullmat(self):
+    def buildfullmat(self):
+        """
+        build full matrix (np.ndarray).
+        """
         L = []
         for i in range(self.dimension):
             L.append([])
             for j in range(self.dimension):
                 L[-1].append(self[i,j])
-        return np.array(L)
+        self._fullmat = np.array(L)
+        return self._fullmat
 
     @property
-    def fullmat(self, renew=False):
+    def fullmat(self):
         """
-        Return the full matrix (in type of np.ndarray)
+        Return the full matrix (np.ndarray)
         """
-        return getattr(self, '_fullmat', self.constfullmat())
+        return getattr(self, '_fullmat', self.buildfullmat())
 
 
     def inverse(self):
         return np.linalg.inv(self.fullmat)
 
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
