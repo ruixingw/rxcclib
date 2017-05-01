@@ -1,7 +1,7 @@
 from .calculate_rmsd import *
 from rxcclib.utils.cclib.utils import PeriodicTable
 
-def rrmsd(xyz1, xyz2, nohydrogen=False):
+def getrmsd(xyz1, xyz2, nohydrogen=False):
 
     p_atoms = [PeriodicTable.element[x] for x in xyz1.fchk.atomnos]
     p_all = np.array(xyz1.fchk.atomcoords[-1])
@@ -51,7 +51,5 @@ def rrmsd(xyz1, xyz2, nohydrogen=False):
     #     write_coordinates(p_atoms, p_all, title="{} translated".format(args.structure_a))
     #     quit()
 
-    print("Normal RMSD:", normal_rmsd)
-    print("Kabsch RMSD:", kabsch_rmsd(P, Q))
-    print("Quater RMSD:", quaternion_rmsd(P, Q))
+    return quaternion_rmsd(P, Q)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from io import StringIO
 import numpy as np
-import rxcclib.io.Gaussian as rxfile
+import rxcclib.file.Gaussian as rxfile
 
 
 class DihdFunction(object):
