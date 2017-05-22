@@ -2,28 +2,29 @@ class Molecule(object):
    __init__(name) # str, not useful 
    Str self.name
    @property Float[] atomcoords
-   @property Int self.natoms
+   @property Int self.natom
    @property Atom[] self.atomlist
    @property Bond[] self.bondlist
    @property Angle[] self.anglelist
    @property Dihedral[] self.dihedrallist
    @property Improper[] self.improperlist
 
-   Atom def addatom(atomnoORelement,coords,unit)
-   Bond def addbond(a,b) # a,b,c,d are atomnums
-   Angle def addangle(a,b,c)
-   Dihedral def addbond(a,b,c,d)
-   Improper def addimproper(a,b,c,d)
+   Atom addatom(atomnoORelement,coords,unit)
+   Bond addbond(a,b) # a,b,c,d are atomnums
+   Angle addangle(a,b,c)
+   Dihedral addbond(a,b,c,d)
+   Improper addimproper(a,b,c,d)
 
-   Atom def atom(a)
-   Bond def bond(a,b)
-   Angle def angle(a,b,c)
-   Dihedral def dihedral(a,b,c,d)
-   Improper def improper(a,b,c,d,)
+   Atom atom(a)
+   Bond bond(a,b)
+   Angle angle(a,b,c)
+   Dihedral dihedral(a,b,c,d)
+   Improper improper(a,b,c,d)
 
    __getitem__
    __iter__
    __len__ = self.natoms
+
 
 class Atom:
    __init__(mole,atomnoORelement,coords,unit)
@@ -35,9 +36,6 @@ class Atom:
    Atom[] self.neighbor
    Float[] self.coords
    __str__ = __repr__
-
-
-
 
 
 class Bond:
@@ -58,14 +56,16 @@ class Angle:
    @property Float self.anglecos
    __str__ = __repr__
 
+
 class Dihedral:
-   __init__(mole,a,b,c,d) # b<c; if b=c: a<d
+   __init__(mole,a,b,c,d) # b<c; if b==c: a<d
    __getitem__
    __iter__
    @property Float anglevalue
    @property Float anglesin
    @property Float anglecos
    __str__ = __repr__
+
 
 class Improper:
    __init__(mole,a,b,c,d)

@@ -1,18 +1,18 @@
-class rxFileError(Exception
+class rxFileError(Exception)
 
 class GauFile(object):
-   def init(self, filename):
-      Str self.pwd
-      Str self.basename
-      GauCOM self._com
-      GauLOG self._log
-      GauFCHK self._fchk
-
-   @property
+   __init__(filename)
+   Str self.pwd
+   Str self.basename
+   GauCOM self._com
+   GauLOG self._log
+   GauFCHK self._fchk
    Str self.comname
    Str self.logname
    Str self.chkname
    Str self.fchkname
+
+   @property
    GauCOM self.com
    GauLOG self.log
    GauFCHK self.fchk
@@ -20,8 +20,8 @@ class GauFile(object):
    def runformchk(self)
 
 class GauFCHK(object):
-   def init(parent):
-      GauFile self._parent
+   __init__(parent)
+   GauFile self._parent
 
    @property Str self.filename
    @property Str self.abspath
@@ -37,20 +37,20 @@ class GauFCHK(object):
       Float[] self.hessian
       Float[] self.intforces
       Float[] self.inthessian
-   Float def findHessianElement(i,j)
-   Float[3x3] def find33Hessian
-   Float def findintHessianElement
+   Float findHessianElement(i,j)
+   Float[3x3] find33Hessian(i,j)
+   Float findintHessianElement(i,j)
 
 
 
 class GauCOM(object):
-      str g09sub = 'g09'
-      def init(self, parent):
-          GauFile self._parent
+      Str g09sub = 'g09'
+
+      __init__(parent):
+         GauFile self._parent
       @property Str self.filename
 
-      def blocksplit(self):
-          return Str[] block
+      Str[] __blocksplit__()
 
-      def run(self):
+      Bool run()
 
