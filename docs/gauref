@@ -16,8 +16,8 @@ class GauFile(object):
    GauCOM self.com
    GauLOG self.log
    GauFCHK self.fchk
+   GauCHK self.chk
 
-   def runformchk(self)
 
 class GauFCHK(object):
    __init__(parent)
@@ -44,13 +44,17 @@ class GauFCHK(object):
 
 
 class GauCOM(object):
-      Str g09sub = 'g09'
+    Str g09sub = 'g09'
 
-      __init__(parent):
-         GauFile self._parent
-      @property Str self.filename
+    __init__(parent):
+       GauFile self._parent
+    @property Str self.filename
 
-      Str[] __blocksplit__()
+    Str[] __blocksplit__()
 
-      Bool run()
+    Bool run()
 
+class GauCHK(object):
+    @property Str self.filename
+    @property Str self.abspath
+    Bool formchk() 

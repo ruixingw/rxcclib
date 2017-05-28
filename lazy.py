@@ -1,16 +1,36 @@
-import .geometry.molecules as rxmol
-import .file.Gaussian as rxgau
+import rxcclib.geometry.molecules as rxmol
+import rxcclib.file.Gaussian as rxgau
+import rxcclib.utils as utils
+import logging
+from io import StringIO
 
-# Read structure from xyz
-def readfromxyz(self, string):
-    f = StringIO(string)
-    for line in f:
+
+def fchkToGeom(filename):
+    filename = filename.split('.fchk')[0]
+    filename = filename.split('.fch')[0]
+    fileobj = rxgau.GauFile(filename)
+    fileobj.fchk.read()
+    geom = rxmol.Molecule('mole')
+
+def ConnectivityToConnectionMatrix(constring):
+    lines = constring.split('\n')[:-1]
+    dimension = len(lines)
+    L=[]
+    for i,line in enumerate(lines):
         tmp = line.split()
-        atom = tmp[0]
-        if atom.isdigit():
-            atom = int(atom)
-        coords = [tmp[1], tmp[2], tmp[3]]
-        self.addatom(atom, coords, unit='angstrom')
+        if i+1 !=int(tmp[0]):
+            raise
+        thislinenum = dimension-i
+        tmpL = [0]*thislinenum
+        if len(tmp) == 1:
+            L.extend(tmpL)
+        else:
+            for no,order in zip(tmp[1::2],tmp[2::2]):
+                no=int(no)
+                order = float(order)
+                tmpL[no-i-1] = order
+            L.extend(tmpL)
+    return L
 
 
 # Read connectivity to complete neighbor info

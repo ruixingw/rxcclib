@@ -69,7 +69,7 @@ class LTMatrix(list):
         return num - 1
 
 
-    def buildfullmat(self):
+    def buildFullMat(self):
         """
         build full matrix (np.ndarray).
         """
@@ -86,11 +86,46 @@ class LTMatrix(list):
         """
         Return the full matrix (np.ndarray)
         """
-        return getattr(self, '_fullmat', self.buildfullmat())
+        return getattr(self, '_fullmat', self.buildFullMat())
 
 
     def inverse(self):
         return np.linalg.inv(self.fullmat)
+
+    def uppermat(self):
+        up = []
+        for i,row in enumerate(self.fullmat):
+                up.extend(row[i:])
+        return up
+
+    @staticmethod
+    def newFromUpperMat(uppermat):
+        """
+        Example:
+           C0 C1 C2 C3 C4 C5
+        R0  0  1  2  3  4  5
+        R1     6  7  8  9 10
+        R2       11 12 13 14
+        R3          15 16 17
+        R4             18 19
+        R5                20
+        """
+        dimension = LTMatrix.getRowColumn(len(uppermat)-1)[0] + 1
+        def getUpperPosition(i,j, dimension):
+            firstnum = dimension
+            if i == 0:
+                return j
+            lastnum = firstnum - i + 1
+            countnum = i
+            abovenums = (firstnum + lastnum)*countnum /2
+            position = abovenums + j - i
+            return int(position)
+        L = []
+        for i in range(dimension):
+            for j in range(i+1):
+                L.append(uppermat[getUpperPosition(j,i,dimension)])
+        return LTMatrix(L)
+
 
 if __name__ == '__main__':
     import doctest

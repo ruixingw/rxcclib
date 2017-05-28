@@ -7,9 +7,11 @@ import rxcclib.utils as utils
 
 periodictable = utils.PeriodicTable()
 
+
 class GeometryError(Exception):
     def __init__(self):
         pass
+
 
 class Molecule(object):
     def __init__(self, name):
@@ -63,14 +65,13 @@ class Molecule(object):
 
         return tmpatom
 
-    def addbond(self, atomnum1, atomnum2):
+    def addbond(self, atomnum1, atomnum2, order=1):
         if atomnum1 > atomnum2:
             atomnum1, atomnum2 = atomnum2, atomnum1
 
-        tmpbond = Bond(self, atomnum1, atomnum2)
+        tmpbond = Bond(self, atomnum1, atomnum2, order)
         key = "{}-{}".format(atomnum1, atomnum2)
         self._bondlist[key] = tmpbond
-
         return tmpbond
 
     def addangle(self, atomnum1, atomnum2, atomnum3):
@@ -80,6 +81,7 @@ class Molecule(object):
         tmpangle = Angle(self, atomnum1, atomnum2, atomnum3)
         key = "{}-{}-{}".format(atomnum1, atomnum2, atomnum3)
         self._anglelist[key] = tmpangle
+
 
         return tmpangle
 
@@ -162,6 +164,33 @@ class Molecule(object):
     def __len__(self):
         return self.natom
 
+    # Read structure from xyz
+    def addatomsFromXYZ(self, string):
+        f = StringIO(string)
+        for line in f:
+            tmp = line.split()
+            atom = tmp[0]
+            if atom.isdigit():
+                atom = int(atom)
+            coords = [tmp[1], tmp[2], tmp[3]]
+            self.addatom(atom, coords, unit='angstrom')
+        return
+
+    def addatomsFromLists(self, atomlist, coordslist):
+        coords = utils.atomwiseList.toGroupOfThree(coordslist)
+        zipped = zip(atomlist, coordslist)
+        for x, y in zipped:
+            self.addatom(x, y, unit='angstrom')
+        return
+
+    def readConnectionMatrix(self, conmat):
+        for i in range(self.natom):
+            # row
+            for j in range(i+1):
+                #column
+                if conmat[i][j] != 0:
+                    self.addbond(self[i + 1].atomnum, self[j + 1].atomnum, order=conmat[i][j])
+        return
 
 
 class Atom(object):
@@ -172,7 +201,7 @@ class Atom(object):
         """
 
         self.mymolecule = mole
-        self.neighbor = []
+        self.neighbors = []
         if isinstance(atomnoORelement, int):
             self._atomno = atomnoORelement
             try:
@@ -199,7 +228,7 @@ class Atom(object):
         if unit == 'bohr':
             coords = [utils.convertor(x, "bohr", "Angstrom") for x in coords]
         tmp = type(coords)
-        if tmp is list:
+        if tmp is list or tmp is tuple:
             self.coords = np.array(coords, dtype=np.float64)
         elif tmp is np.ndarray:
             self.coords = coords
@@ -227,17 +256,18 @@ class Atom(object):
 
 
 class Bond(object):
-    def __init__(self, mole, a, b):  # self, atomnum a, atomnum b
+    def __init__(self, mole, a, b, order=1):  # self, atomnum a, atomnum b
         if a > b:
             a, b = b, a
         a = mole[a]
         b = mole[b]
         self._atomlist = [a, b]
         self.mymolecule = mole
-        a.neighbor.append(b)
-        a.neighbor = list(set(a.neighbor))
-        b.neighbor.append(a)
-        b.neighbor = list(set(b.neighbor))
+        self.order = order
+        a.neighbors.append(b)
+        a.neighbors = list(set(a.neighbors))
+        b.neighbors.append(a)
+        b.neighbors = list(set(b.neighbors))
         self.vec = self[1].coords - self[2].coords
 
     def __getitem__(self, key):
@@ -374,7 +404,7 @@ class Dihedral(object):
     __str__ = __repr__
 
 
-class Improper(object):
+class Improper(Dihedral):
     def __init__(self, mole, a, b, c, d):
         a = mole[a]
         b = mole[b]
@@ -382,45 +412,6 @@ class Improper(object):
         d = mole[d]
         self._atomlist = [a, b, c, d]
         self.mymolecule = mole
-
-    def __getitem__(self, key):
-        if isinstance(key, int):
-            if key != 1 and key != 2 and key != 3 and key != 4:
-                logging.critical('key for improper[key] must be 1, 2, 3 or 4.')
-                raise GeometryError
-        return self._atomlist[key - 1]
-
-    # iterate atoms
-    def __iter__(self):
-        return iter(self._atomlist)
-
-    @property
-    def anglesin(self):
-        return np.sin(self.anglevalue * np.pi / 180)
-
-    @property
-    def anglecos(self):
-        return np.cos(self.anglevalue * np.pi / 180)
-
-    @property
-    def anglevalue(self):
-        # see comment in Dihedral.anglevalue
-        v1 = self[1].coords - self[2].coords
-        v2 = self[2].coords - self[3].coords
-        v3 = self[3].coords - self[4].coords
-        v1u = v1 / np.linalg.norm(v1)
-        v2u = v2 / np.linalg.norm(v2)
-        v3u = v3 / np.linalg.norm(v3)
-        n1 = np.cross(v1u, v2u)
-        n2 = np.cross(v2u, v3u)
-        n1 = n1 / np.linalg.norm(n1)
-        n2 = n2 / np.linalg.norm(n2)
-        m1 = np.cross(n1, v2u)
-        x = np.dot(n1, n2)
-        y = np.dot(m1, n2)
-
-        improper = np.arctan2(y, x) * 180.0 / np.pi
-        return improper
 
     def __repr__(self):
         return ("Improper " + self[1].name + '-' + self[2].name + '-' +

@@ -103,7 +103,7 @@ class GauFCHK(object):
                             assert (len(coordslist) == self.natom * 3)
                             break
                     self.atomcoords = []
-                    self.atomcoords.append(utils.toGroupOfThree(coordslist))
+                    self.atomcoords.append(utils.atomwiseList.toGroupOfThree(coordslist))
 
                 # Read Gradient(Forces)
                 if line.find('Cartesian Gradient') == 0:
@@ -119,7 +119,7 @@ class GauFCHK(object):
                         except (ValueError, IndexError):
                             assert (len(gradslist) == 3 * self.natom)
                             break
-                    self.grads = utils.toGroupOfThree(gradslist)
+                    self.grads = utils.atomwiseList.toGroupOfThree(gradslist)
 
                 # Read Hessian
                 if line.find('Cartesian Force Constants') == 0:

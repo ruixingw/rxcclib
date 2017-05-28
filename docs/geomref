@@ -33,14 +33,15 @@ class Atom:
    @property Str self.element
    @property Int self.atomnum
    @property Str self.name
-   Atom[] self.neighbor
+   Atom[] self.neighbors
    Float[] self.coords
    __str__ = __repr__
 
 
 class Bond:
-   __init__(mole,a,b) # a<b
-   Float[] self.vec # b->a   
+   __init__(mole,a,b,order=1) # a<b
+   Float[] self.vec # b->a
+   Float self.order
    __getitem__
    __iter__
    @property Float self.length
@@ -67,12 +68,7 @@ class Dihedral:
    __str__ = __repr__
 
 
-class Improper:
+class Improper(Dihedral):
    __init__(mole,a,b,c,d)
-   __getitem__
-   __iter__
-   @property Float anglevalue
-   @property Float anglesin
-   @property Float anglecos
    __str__ = __repr__
 

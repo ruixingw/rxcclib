@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class HrmStr1(object):
     """
     Harmonic stretch I (Amber 1): ForceC*(distance-eqvalue)^2
@@ -51,6 +50,7 @@ class HrmBnd1(object):
 
 
 class AmbTrs(object):
+
     """
     Amber torsion (Amber 1)
     Master function
@@ -84,11 +84,11 @@ class AmbTrs(object):
             energy = k * [1 + np.cos(np.radians(i * phi - po))]
             return energy
 
-    def __init__(self, dihdobj, npaths):
+    def __init__(self, dihedralobj, npaths):
         """
         Int npaths: Divider
         """
-        self.dihedral = dihdobj
+        self.dihedral = dihedralobj
         self.terms = {}
         self.npaths = npaths
 
@@ -104,3 +104,15 @@ class AmbTrs(object):
     def getEnergy(self):
         tmp = [x.getEnergy() for x in self.terms.values()]
         return sum(tmp)
+
+
+class ImpTrs(AmbTrs.Term):
+    def __init__(self, improperobj, ForceC, periodicity, phase):
+        super().__init__(improperobj, ForceC, periodicity, phase)
+        self.npaths = 2
+        self.improper = self.master
+
+    @property
+    def anglevalue(self):
+        return self.improper.anglevalue
+
