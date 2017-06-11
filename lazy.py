@@ -11,6 +11,8 @@ def fchkToGeom(filename):
     fileobj = rxgau.GauFile(filename)
     fileobj.fchk.read()
     geom = rxmol.Molecule('mole')
+    geom.addatomsFromLists(fileobj.fchk.atomnos, fileobj.fchk.atomcoords[-1])
+
 
 def ConnectivityToConnectionMatrix(constring):
     lines = constring.split('\n')[:-1]
