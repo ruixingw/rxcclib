@@ -7,6 +7,7 @@ import shutil
 from io import StringIO
 import numpy as np
 import rxcclib.utils as utils
+import rxcclib.utils.periodictable as periodictable
 
 table = utils.PeriodicTable()
 
@@ -165,7 +166,7 @@ class GauFCHK(object):
     def xyz(self):
         tmp = list(
             zip(
-                map(lambda x: table.element[x], self.atomnos), self.atomcoords[
+                map(lambda x: periodictable.elements[x].symbol, self.atomnos), self.atomcoords[
                     -1]))
         string = ''
         for item in tmp:

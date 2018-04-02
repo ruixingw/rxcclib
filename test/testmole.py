@@ -81,13 +81,13 @@ class TestMole(unittest.TestCase):
         benz = rxmol.Molecule("Benzene")
         with open('samples/ben.xyz', 'r') as f:
             f = f.read()
-        benz.readfromxyz(f)
+        benz.addatomsFromXYZ(f)
         self.assertEqual(benz[1].name, 'C1')
         self.assertEqual(benz[12].name, 'H12')
         #test_connty
         with open('samples/cnnty.com', 'r') as f:
             cn = f.read()
-        benz.readconnectivity(cn)
+        benz.readGauConnect(cn)
         self.assertEqual(len(benz.bondlist.values()), 12)
         self.assertEqual(len(benz.anglelist.values()), 18)
         self.assertEqual(len(benz.dihedrallist.values()), 24)
